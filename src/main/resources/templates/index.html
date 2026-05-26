@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampRent - Penyewaan Perlengkapan Camping Medan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#F4F4F2] text-slate-800 font-sans antialiased">
+
+<nav class="w-full bg-[#19381C] fixed top-0 left-0 z-40 text-white py-4 px-8 flex justify-between items-center shadow-md">
+    <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-[#E27252] rounded-full flex items-center justify-center font-bold text-xs text-white">CR</div>
+        <span class="font-bold text-xl tracking-wide">CampRent</span>
+    </div>
+
+    <div class="hidden md:flex gap-8 text-sm font-medium">
+        <a href="#" class="hover:text-[#E27252] transition duration-300">Home</a>
+        <a href="#categories" class="hover:text-[#E27252] transition duration-300">Categories</a>
+        <a href="#explore" class="hover:text-[#E27252] transition duration-300">Popular Rentals</a>
+        <a href="#about-us" class="hover:text-[#E27252] transition duration-300">About Us</a>
+        <a href="#reviews" class="hover:text-[#E27252] transition duration-300">Reviews</a>
+        <a href="#contact-us" class="hover:text-[#E27252] transition duration-300">Contact</a>
+    </div>
+
+    <div class="flex gap-4 text-sm font-semibold">
+        <button onclick="openModal('loginModal')" class="hover:text-[#E27252] transition duration-300">Login</button>
+        <button onclick="openModal('signupModal')" class="bg-[#E27252] px-4 py-2 rounded-md hover:bg-[#c85f41] transition duration-300 shadow">Sign Up</button>
+    </div>
+</nav>
+
+
+<header class="relative h-screen flex items-center justify-between px-8 md:px-16 pt-16 bg-cover bg-center" style="background-image: linear-gradient(rgba(25, 56, 28, 0.6), rgba(25, 56, 28, 0.4)), url('https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=1920&q=80');">
+    <div class="max-w-2xl text-white space-y-6 z-10">
+        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">Rent Your Camp Gear <span class="text-[#E27252]">Easily!</span></h1>
+        <p class="text-lg opacity-90">Sewa alat hiking, camping, dan petualangan outdoor terpercaya di wilayah Medan dan sekitarnya.</p>
+        <div class="flex gap-4">
+            <button onclick="openModal('signupModal')" class="border-2 border-white px-6 py-3 rounded-md font-semibold hover:bg-white hover:text-[#19381C] transition duration-300">Start Camping</button>
+            <button onclick="openModal('signupModal')" class="bg-[#E27252] px-6 py-3 rounded-md font-semibold hover:bg-[#c85f41] transition duration-300">Explore Gear</button>
+        </div>
+    </div>
+
+    <div class="hidden lg:block bg-white p-6 rounded-xl shadow-2xl w-85 text-sm z-10">
+        <h3 class="font-bold text-lg text-[#19381C] mb-4">Find Your Gear</h3>
+        <form class="space-y-4" onsubmit="event.preventDefault(); openModal('signupModal');">
+            <div>
+                <label class="block text-gray-600 font-medium mb-1">Gear Type</label>
+                <select class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
+                    <option value="">Pilih Kategori</option>
+                    <option>Tenda (Tent)</option>
+                    <option>Tas Carrier (Backpack)</option>
+                    <option>Sepatu Gunung</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-600 font-medium mb-1">Rent Date</label>
+                <input type="date" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
+            </div>
+            <button type="submit" class="w-full bg-[#E27252] text-white py-2.5 rounded-md font-semibold hover:bg-[#c85f41] transition duration-300 shadow">Search Gear</button>
+        </form>
+    </div>
+</header>
+
+
+<section id="categories" class="max-w-7xl mx-auto px-8 py-16 scroll-mt-20">
+    <h2 class="text-2xl font-bold text-[#19381C] mb-2">Top Categories</h2>
+    <p class="text-gray-500 text-sm mb-8">Pilih kategori alat yang sesuai dengan rencana petualanganmu.</p>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm text-center border border-gray-100 hover:border-[#E27252] transition duration-300 group cursor-pointer">
+            <div class="w-16 h-16 bg-[#19381C]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#E27252]/10 transition">
+                <span class="text-2xl">⛺</span>
+            </div>
+            <h3 class="font-bold text-gray-800">Tenda & Shelter</h3>
+            <p class="text-xs text-gray-400 mt-1">45+ Items Available</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm text-center border border-gray-100 hover:border-[#E27252] transition duration-300 group cursor-pointer">
+            <div class="w-16 h-16 bg-[#19381C]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#E27252]/10 transition">
+                <span class="text-2xl">🎒</span>
+            </div>
+            <h3 class="font-bold text-gray-800">Tas & Carrier</h3>
+            <p class="text-xs text-gray-400 mt-1">32+ Items Available</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm text-center border border-gray-100 hover:border-[#E27252] transition duration-300 group cursor-pointer">
+            <div class="w-16 h-16 bg-[#19381C]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#E27252]/10 transition">
+                <span class="text-2xl">🥾</span>
+            </div>
+            <h3 class="font-bold text-gray-800">Sepatu Gunung</h3>
+            <p class="text-xs text-gray-400 mt-1">18+ Items Available</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm text-center border border-gray-100 hover:border-[#E27252] transition duration-300 group cursor-pointer">
+            <div class="w-16 h-16 bg-[#19381C]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#E27252]/10 transition">
+                <span class="text-2xl">🍳</span>
+            </div>
+            <h3 class="font-bold text-gray-800">Alat Memasak</h3>
+            <p class="text-xs text-gray-400 mt-1">27+ Items Available</p>
+        </div>
+    </div>
+</section>
+
+
+<section id="explore" class="max-w-7xl mx-auto px-8 py-12 scroll-mt-20">
+    <h2 class="text-2xl font-bold text-[#19381C] mb-8">Popular Rentals</h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div th:each="alat : ${popularAlatList}" class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+            <div class="h-44 bg-gray-200 relative">
+                <img th:src="${alat.imageUrl != null ? alat.imageUrl : 'https://via.placeholder.com/300x200'}" alt="Gear Image" class="w-full h-full object-cover">
+            </div>
+            <div class="p-4">
+                <h4 th:text="${alat.nama}" class="font-bold text-gray-800">Nama Alat</h4>
+                <p th:text="${'Rp ' + alat.hargaHarian + '/day'}" class="text-[#E27252] font-semibold text-sm mt-1">Rp 0/day</p>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+            <div class="h-44 bg-gray-300"><img src="https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover"></div>
+            <div class="p-4"><h4 class="font-bold text-gray-800">Tent Kapasitas 4 Orang</h4><p class="text-[#E27252] font-semibold text-sm mt-1">Rp 80.000/day</p></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+            <div class="h-44 bg-gray-300"><img src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover"></div>
+            <div class="p-4"><h4 class="font-bold text-gray-800">Portable Gas Stove</h4><p class="text-[#E27252] font-semibold text-sm mt-1">Rp 15.000/day</p></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+            <div class="h-44 bg-gray-300"><img src="https://images.unsplash.com/photo-1520639888713-7851133b1ed0?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover"></div>
+            <div class="p-4"><h4 class="font-bold text-gray-800">Carrier Eiger 65L</h4><p class="text-[#E27252] font-semibold text-sm mt-1">Rp 35.000/day</p></div>
+        </div>
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+            <div class="h-44 bg-gray-300"><img src="https://images.unsplash.com/photo-1606244864456-8bea63fcf479?auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover"></div>
+            <div class="p-4"><h4 class="font-bold text-gray-800">Matras Camping Aluminium</h4><p class="text-[#E27252] font-semibold text-sm mt-1">Rp 5.000/day</p></div>
+        </div>
+    </div>
+</section>
+
+
+<section id="about-us" class="bg-[#19381C] text-white py-16 px-8 scroll-mt-20">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+        <div class="space-y-6">
+            <h2 class="text-3xl font-bold leading-tight">Why Choose <span class="text-[#E27252]">CampRent?</span></h2>
+            <p class="opacity-80 text-sm leading-relaxed">Kami menghubungkan para pendaki dengan vendor persewaan alat gunung terbaik di area Kota Medan demi menjamin keselamatan dan kenyamanan camping Anda.</p>
+
+            <div class="space-y-4 text-sm">
+                <div class="flex items-start gap-3">
+                    <span class="text-[#E27252] font-bold text-lg">✓</span>
+                    <div>
+                        <h4 class="font-bold">Kualitas Alat Terjamin</h4>
+                        <p class="opacity-75 text-xs">Seluruh perlengkapan dicek kelayakannya secara berkala oleh toko mitra.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="text-[#E27252] font-bold text-lg">✓</span>
+                    <div>
+                        <h4 class="font-bold">Harga Transparan & Kompetitif</h4>
+                        <p class="opacity-75 text-xs">Bandingkan harga dari berbagai toko terdekat dengan skema denda jujur.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="h-64 md:h-96 rounded-xl overflow-hidden shadow-xl">
+            <img src="https://images.unsplash.com/photo-1537905569824-f89f14cceb68?auto=format&fit=crop&w=800&q=80" alt="Adventure Image" class="w-full h-full object-cover">
+        </div>
+    </div>
+</section>
+
+
+<section id="reviews" class="max-w-7xl mx-auto px-8 py-16">
+    <h2 class="text-2xl font-bold text-[#19381C] text-center mb-2">What Our Campers Say</h2>
+    <p class="text-gray-500 text-sm text-center mb-12">Pengalaman nyata dari komunitas pecinta alam di Medan.</p>
+
+    <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <p class="text-gray-600 text-sm italic">"Sewa tenda di CampRent praktis sekali. Barangnya wangi, bersih, pas dipakai di Sibayak tidak ada bocor sama sekali!"</p>
+            <div class="flex items-center gap-3 mt-4">
+                <div class="w-10 h-10 bg-amber-500 rounded-full overflow-hidden"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" class="w-full h-full object-cover"></div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">Rizky Ananda</h4>
+                    <p class="text-xs text-gray-400">Mahasiswa USU</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <p class="text-gray-600 text-sm italic">"Sangat terbantu karena fiturnya bisa membandingkan harga antar toko di Medan. Denda keterlambatan juga dihitung transparan."</p>
+            <div class="flex items-center gap-3 mt-4">
+                <div class="w-10 h-10 bg-amber-500 rounded-full overflow-hidden"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" class="w-full h-full object-cover"></div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">Budi Pratama</h4>
+                    <p class="text-xs text-gray-400">Pendaki Santai</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <p class="text-gray-600 text-sm italic">"Proses verifikasi toko cepat dan UI-nya sangat ramah diakses dari HP saat di jalan menuju basecamp."</p>
+            <div class="flex items-center gap-3 mt-4">
+                <div class="w-10 h-10 bg-amber-500 rounded-full overflow-hidden"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80" class="w-full h-full object-cover"></div>
+                <div>
+                    <h4 class="font-bold text-sm text-gray-800">Sarah Lubis</h4>
+                    <p class="text-xs text-gray-400">Backpacker Medan</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<footer id="contact-us" class="bg-[#112413] text-white pt-12 pb-6 px-8 scroll-mt-20">
+    <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-8 border-b border-gray-800 pb-8 text-sm">
+        <div class="space-y-4">
+            <h3 class="font-bold text-lg text-[#E27252]">CampRent</h3>
+            <p class="opacity-75 text-xs max-w-xs">Platform Solusi Sewa Alat Gunung Terintegrasi di Medan, Sumatra Utara.</p>
+        </div>
+        <div class="space-y-2">
+            <h4 class="font-bold text-sm text-gray-300">Quick Links</h4>
+            <ul class="space-y-1 text-xs opacity-75">
+                <li><a href="#" class="hover:text-[#E27252]">Syarat & Ketentuan</a></li>
+                <li><a href="#" class="hover:text-[#E27252]">Cara Menyewa</a></li>
+                <li><a href="#" class="hover:text-[#E27252]">Daftar Mitra Toko</a></li>
+            </ul>
+        </div>
+        <div class="space-y-3">
+            <h4 class="font-bold text-sm text-gray-300">Contact Us</h4>
+            <p class="text-xs opacity-75">📍 Jl. Universitas No. 9, Padang Bulan, Medan</p>
+            <p class="text-xs opacity-75">✉️ support@camprent.com</p>
+            <p class="text-xs opacity-75">📞 +62 812-3456-7890</p>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto pt-6 text-center text-xs opacity-50">
+        &copy; 2026 CampRent Project. All Rights Reserved.
+    </div>
+</footer>
+
+
+<div th:replace="~{fragments/modals :: auth-modals}"></div>
+
+<script src="/js/landing.js" th:src="@{/js/landing.js}"></script>
+
+</body>
+</html>
