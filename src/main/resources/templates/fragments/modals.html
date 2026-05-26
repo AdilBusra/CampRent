@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head><title></title></head>
+<body>
+<div th:fragment="auth-modals">
+
+    <div id="modalOverlay" class="fixed inset-0 bg-[#19381C]/80 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-500">
+
+        <div id="loginModal" class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform scale-95 transition-transform duration-500 hidden relative">
+            <button onclick="closeAllModals()" aria-label="Close modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
+
+            <h3 class="text-2xl font-bold text-[#19381C] text-center mb-2">Welcome Back</h3>
+            <p class="text-xs text-gray-500 text-center mb-6">Masuk untuk mulai menyewa alat camping terbaik di Medan.</p>
+
+            <form th:action="@{/login}" method="POST" class="space-y-4 text-sm">
+                <div>
+                    <label for="loginUsername" class="block text-gray-700 font-medium mb-1">Email / Username</label>
+                    <input type="text" id="loginUsername" name="username" placeholder="Masukkan email atau username" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-gray-700 font-medium mb-1">Password</label>
+                    <input type="password" id="loginPassword" name="password" placeholder="••••••••" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
+                </div>
+                <div class="text-right">
+                    <a href="#" class="text-xs text-[#E27252] hover:underline">Lupa Password?</a>
+                </div>
+                <button type="submit" class="w-full bg-[#19381C] text-white py-2.5 rounded-md font-semibold hover:bg-[#112413] transition duration-300 shadow">Login</button>
+            </form>
+
+            <div class="text-center text-xs text-gray-500 mt-6">
+                Belum punya akun? <button onclick="openModal('signupModal')" aria-label="Switch to signup" class="text-[#E27252] font-semibold hover:underline">Daftar Sekarang</button>
+            </div>
+        </div>
+
+        <div id="signupModal" class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform scale-95 transition-transform duration-500 hidden relative">
+            <button onclick="closeAllModals()" aria-label="Close modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
+
+            <h3 class="text-2xl font-bold text-[#19381C] text-center mb-2">Create Account</h3>
+            <p class="text-xs text-gray-500 text-center mb-6">Bergabung sebagai Camper untuk kemudahan bertransaksi.</p>
+
+            <form th:action="@{/register}" method="POST" class="space-y-3 text-sm">
+                <div>
+                    <label for="regNama" class="block text-gray-700 font-medium mb-1">Nama Lengkap</label>
+                    <input type="text" id="regNama" name="nama" placeholder="Nama sesuai KTP" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
+                </div>
+                <div>
+                    <label for="regEmail" class="block text-gray-700 font-medium mb-1">Email</label>
+                    <input type="email" id="regEmail" name="email" placeholder="contoh@gmail.com" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
+                </div>
+                <div>
+                    <label for="regTelp" class="block text-gray-700 font-medium mb-1">No. WhatsApp</label>
+                    <input type="tel" id="regTelp" name="telepon" placeholder="0812xxxx" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
+                </div>
+                <div>
+                    <label for="regPass" class="block text-gray-700 font-medium mb-1">Password</label>
+                    <input type="password" id="regPass" name="password" placeholder="Minimal 6 karakter" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
+                </div>
+                <button type="submit" class="w-full bg-[#E27252] text-white py-2.5 rounded-md font-semibold hover:bg-[#c85f41] transition duration-300 shadow mt-2">Daftar Akun</button>
+            </form>
+
+            <div class="text-center text-xs text-gray-500 mt-6">
+                Sudah memiliki akun? <button onclick="openModal('loginModal')" aria-label="Switch to login" class="text-[#19381C] font-semibold hover:underline">Masuk di sini</button>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+</body>
+</html>
