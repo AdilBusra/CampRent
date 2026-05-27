@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Kelola Kategori Alat - CampRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<div class="flex">
+    <div th:replace="~{fragments/sidebar :: admin-sidebar}"></div>
+
+    <main class="flex-1 ml-64 p-8">
+
+        <div class="bg-white p-6 rounded-xl shadow-sm mb-8">
+            <h1 class="text-2xl font-bold text-[#19381C]">Kelola Kategori Alat</h1>
+            <p class="text-sm text-gray-500">Manajemen kelompok jenis alat gunung yang tersedia di platform CampRent.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-white p-6 rounded-xl shadow-sm h-fit">
+                <h3 class="text-lg font-bold text-[#19381C] mb-4">Tambah Kategori Baru</h3>
+                <form th:action="@{/admin/categories/add}" method="POST" class="space-y-4">
+                    <div>
+                        <label for="namaKategori" class="block text-sm font-medium text-gray-700 mb-1">Nama Kategori</label>
+                        <input type="text" id="namaKategori" name="namaKategori" placeholder="Contoh: Alat Masak, Tenda" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C] text-sm" required>
+                    </div>
+                    <button type="submit" class="w-full bg-[#E27252] hover:bg-[#c85f41] text-white font-semibold py-2 rounded-md text-sm transition shadow">Simpan Kategori</button>
+                </form>
+            </div>
+
+            <div class="md:col-span-2 bg-white rounded-xl shadow-sm overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-50 border-b border-gray-100 text-sm font-semibold text-gray-600">
+                    <tr>
+                        <th class="p-4 w-20">ID</th>
+                        <th class="p-4">Nama Kategori Alat</th>
+                    </tr>
+                    </thead>
+                    <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                    <tr th:if="${#lists.isEmpty(categories)}">
+                        <td colspan="2" class="p-8 text-center text-gray-400 italic">Belum ada kategori yang dibuat. Silakan tambah di form kiri.</td>
+                    </tr>
+
+                    <tr th:each="kategori : ${categories}">
+                        <td class="p-4 font-mono text-gray-500" th:text="${kategori.id}">1</td>
+                        <td class="p-4 font-semibold text-gray-900" th:text="${kategori.namaKategori}">Tenda</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+</body>
+</html>
