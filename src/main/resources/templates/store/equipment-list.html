@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Store Equipment - CampRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#F8F5EC] text-[#12372A]">
+
+<div th:replace="~{fragments/store-sidebar :: storeSidebar('equipment')}"></div>
+
+<div th:replace="~{fragments/navbar :: navbar('Equipment Inventory')}"></div>
+
+<main class="min-h-screen lg:ml-64 p-6">
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <section class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div th:if="${successMessage}"
+             class="mb-6 rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-700">
+
+            <p class="font-semibold" th:text="${successMessage}">
+                Equipment successfully saved.
+            </p>
+
+        </div>
+
+        <div>
+            <h1 class="text-3xl font-bold">Equipment Inventory</h1>
+            <p class="text-sm text-[#12372A]/70 mt-1">
+                Manage your camping equipment, stock, rental price, and damage penalty.
+            </p>
+        </div>
+
+        <a th:href="@{/store/equipment/add}"
+           class="inline-flex items-center justify-center rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
+            + Add Equipment
+        </a>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 p-5 mb-6">
+        <form th:action="@{/store/equipment}" method="get"
+              class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            <input type="text"
+                   name="keyword"
+                   th:value="${keyword}"
+                   placeholder="Search equipment name or brand..."
+                   class="rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+
+            <select name="categoryId"
+                    class="rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                <option value="">All Categories</option>
+                <option th:each="kategori : ${listKategori}"
+                        th:value="${kategori.id}"
+                        th:text="${kategori.namaKategori}">
+                    Tent
+                </option>
+            </select>
+
+            <button type="submit"
+                    class="rounded-xl bg-[#12372A] px-4 py-3 text-white font-semibold hover:bg-[#1f4d3b] transition">
+                Search
+            </button>
+        </form>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-[#12372A] text-white">
+                <tr>
+                    <th class="px-5 py-4 text-sm font-semibold">Equipment</th>
+                    <th class="px-5 py-4 text-sm font-semibold">Category</th>
+                    <th class="px-5 py-4 text-sm font-semibold">Stock</th>
+                    <th class="px-5 py-4 text-sm font-semibold">Rental Price</th>
+                    <th class="px-5 py-4 text-sm font-semibold">Penalty</th>
+                    <th class="px-5 py-4 text-sm font-semibold text-right">Action</th>
+                </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-100">
+
+                <tr th:if="${#lists.isEmpty(listPeralatan)}">
+                    <td colspan="6" class="px-5 py-16">
+
+                        <div class="flex flex-col items-center justify-center text-center">
+
+                            <div class="text-6xl mb-4">
+                                🎒
+                            </div>
+
+                            <h3 class="text-xl font-bold text-[#12372A]">
+                                No Equipment Yet
+                            </h3>
+
+                            <p class="mt-2 text-sm text-gray-500 max-w-md">
+                                Start adding your camping equipment to make it available for rent on CampRent.
+                            </p>
+
+                            <a th:href="@{/store/equipment/add}"
+                               class="mt-6 rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
+                                + Add First Equipment
+                            </a>
+
+                        </div>
+
+                    </td>
+                </tr>
+
+                <tr th:each="peralatan : ${listPeralatan}" class="hover:bg-[#F8F5EC] transition">
+                    <td class="px-5 py-4">
+                        <p class="font-semibold" th:text="${peralatan.namaAlat}">
+                            Tenda Dome Borneo 4
+                        </p>
+                        <p class="text-sm text-gray-500" th:text="${peralatan.merek}">
+                            Eiger
+                        </p>
+                    </td>
+
+                    <td class="px-5 py-4"
+                        th:text="${peralatan.kategori.namaKategori}">
+                        Tenda
+                    </td>
+
+                    <td class="px-5 py-4">
+                        <span class="rounded-full px-3 py-1 text-sm font-semibold"
+                              th:text="${peralatan.stok}"
+                              th:classappend="${peralatan.stok <= 3} ? ' bg-red-100 text-red-700' : ' bg-green-100 text-green-700'">
+                            10
+                        </span>
+                    </td>
+
+                    <td class="px-5 py-4"
+                        th:text="${#numbers.formatDecimal(peralatan.hargaSewaPerHari, 0, 'COMMA', 0, 'POINT')}">
+                        80000
+                    </td>
+
+                    <td class="px-5 py-4"
+                        th:text="${#numbers.formatDecimal(peralatan.dendaKerusakan, 0, 'COMMA', 0, 'POINT')}">
+                        150000
+                    </td>
+
+                    <td class="px-5 py-4">
+                        <div class="flex justify-end gap-2">
+                            <a th:href="@{/store/equipment/edit/{id}(id=${peralatan.id})}"
+                               class="rounded-lg bg-yellow-100 px-3 py-2 text-sm font-semibold text-yellow-700 hover:bg-yellow-200">
+                                Edit
+                            </a>
+
+                            <form th:action="@{/store/equipment/delete/{id}(id=${peralatan.id})}"
+                                  method="post"
+                                  onsubmit="return confirm('Delete this equipment?')">
+                                <button type="submit"
+                                        class="rounded-lg bg-red-100 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-200">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+    <script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>
