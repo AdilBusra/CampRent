@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Riwayat Transaksi Global - CampRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<div class="flex">
+    <div th:replace="~{fragments/sidebar :: admin-sidebar}"></div>
+
+    <main class="flex-1 ml-64 p-8">
+
+        <div class="bg-white p-6 rounded-xl shadow-sm mb-8">
+            <h1 class="text-2xl font-bold text-[#19381C]">Riwayat Transaksi Global</h1>
+            <p class="text-sm text-gray-500">Log pemantauan seluruh aktivitas sewa-menyewa alat camping antar Mitra Toko dan Pelanggan di platform CampRent Medan.</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 border-b border-gray-100 text-sm font-semibold text-gray-600">
+                <tr>
+                    <th class="p-4">ID Nota</th>
+                    <th class="p-4">Nama Pelanggan</th>
+                    <th class="p-4">Tempat Sewa (Toko)</th>
+                    <th class="p-4">Tanggal Sewa</th>
+                    <th class="p-4">Tanggal Kembali</th>
+                    <th class="p-4">Total Biaya</th>
+                    <th class="p-4 text-center">Status</th>
+                </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                <tr th:if="${#lists.isEmpty(transactions)}">
+                    <td colspan="7" class="p-8 text-center text-gray-400 italic">Belum ada rekaman transaksi global di dalam sistem.</td>
+                </tr>
+
+                <tr th:each="transaksi : ${transactions}">
+                    <td class="p-4 font-mono text-gray-500" th:text="${'#TRX-' + transaksi.id}">#TRX-1</td>
+                    <td class="p-4 font-semibold text-gray-950" th:text="${transaksi.customer.namaLengkap}">Adil Mulia</td>
+                    <td class="p-4 text-gray-600" th:text="${transaksi.store.namaToko}">Eiger Store Medan</td>
+                    <td class="p-4 text-gray-500" th:text="${transaksi.tanggalSewa}">2026-05-26</td>
+                    <td class="p-4 text-gray-500" th:text="${transaksi.tanggalKembali}">2026-05-29</td>
+                    <td class="p-4 font-semibold text-gray-900">
+                        Rp <span th:text="${#numbers.formatDecimal(transaksi.totalHarga, 0, 'POINT', 0, 'COMMA')}">150.000</span>
+                    </td>
+                    <td class="p-4 text-center">
+                        <span th:if="${transaksi.statusTransaksi == 'PENDING'}" class="bg-gray-100 text-gray-800 px-2.5 py-1 rounded-full text-xs font-semibold">PENDING</span>
+                        <span th:if="${transaksi.statusTransaksi == 'DIPAKAI'}" class="bg-blue-100 text-blue-800 px-2.5 py-1 rounded-full text-xs font-semibold">DIPAKAI</span>
+                        <span th:if="${transaksi.statusTransaksi == 'SELESAI'}" class="bg-green-100 text-green-800 px-2.5 py-1 rounded-full text-xs font-semibold">SELESAI</span>
+                        <span th:if="${transaksi.statusTransaksi == 'TERLAMBAT'}" class="bg-red-100 text-red-800 px-2.5 py-1 rounded-full text-xs font-semibold">TERLAMBAT</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+</div>
+
+</body>
+</html>

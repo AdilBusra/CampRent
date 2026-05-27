@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Validasi Mitra Toko - CampRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<div class="flex">
+    <div th:replace="~{fragments/sidebar :: admin-sidebar}"></div>
+
+    <main class="flex-1 ml-64 p-8">
+
+        <div class="bg-white p-6 rounded-xl shadow-sm mb-8">
+            <h1 class="text-2xl font-bold text-[#19381C]">Validasi Mitra Toko</h1>
+            <p class="text-sm text-gray-500">Setujui atau tolak pendaftaran stand mitra persewaan alat gunung di area Medan.</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 border-b border-gray-100 text-sm font-semibold text-gray-600">
+                <tr>
+                    <th class="p-4">Nama Toko</th>
+                    <th class="p-4">Alamat</th>
+                    <th class="p-4">No. Telepon</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4 text-center">Aksi Keputusan</th>
+                </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700 divide-y divide-gray-100">
+                <tr th:if="${#lists.isEmpty(stores)}">
+                    <td colspan="5" class="p-8 text-center text-gray-400 italic">Belum ada mitra toko yang terdaftar di database H2.</td>
+                </tr>
+
+                <tr th:each="store : ${stores}">
+                    <td class="p-4 font-semibold text-gray-900" th:text="${store.namaToko}">Eiger Store Medan</td>
+                    <td class="p-4 text-gray-500" th:text="${store.alamat}">Jl. Dr. Mansyur No. 10</td>
+                    <td class="p-4 font-mono" th:text="${store.nomorTelepon}">08123456789</td>
+                    <td class="p-4">
+                        <span th:if="${store.statusVerifikasi == 'PENDING'}" class="bg-yellow-100 text-yellow-800 px-2.5 py-1 rounded-full text-xs font-semibold">PENDING</span>
+                        <span th:if="${store.statusVerifikasi == 'VERIFIED'}" class="bg-green-100 text-green-800 px-2.5 py-1 rounded-full text-xs font-semibold">VERIFIED</span>
+                        <span th:if="${store.statusVerifikasi == 'REJECTED'}" class="bg-red-100 text-red-800 px-2.5 py-1 rounded-full text-xs font-semibold">REJECTED</span>
+                    </td>
+                    <td class="p-4 flex justify-center gap-2">
+                        <div th:if="${store.statusVerifikasi == 'PENDING'}" class="flex gap-2">
+                            <form th:action="@{/admin/stores/validasi}" method="POST">
+                                <input type="hidden" name="id" th:value="${store.id}">
+                                <input type="hidden" name="status" value="VERIFIED">
+                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1.5 rounded text-xs transition">Setujui</button>
+                            </form>
+
+                            <form th:action="@{/admin/stores/validasi}" method="POST">
+                                <input type="hidden" name="id" th:value="${store.id}">
+                                <input type="hidden" name="status" value="REJECTED">
+                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-medium px-3 py-1.5 rounded text-xs transition">Tolak</button>
+                            </form>
+                        </div>
+                        <span th:if="${store.statusVerifikasi != 'PENDING'}" class="text-xs text-gray-400 italic">Sudah Diproses</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+</div>
+
+</body>
+</html>
