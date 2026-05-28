@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Store Dashboard - CampRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#F8F5EC] text-[#12372A]">
+
+<div th:replace="~{fragments/store-sidebar :: storeSidebar('dashboard')}"></div>
+<div th:replace="~{fragments/navbar :: navbar('Store Dashboard')}"></div>
+
+<main class="min-h-screen lg:ml-64 p-6">
+
+    <section class="mb-8">
+        <h1 class="text-3xl font-bold">Welcome,
+            <span th:text="${store.namaToko}">Mountain Adventure</span>
+        </h1>
+        <p class="text-sm text-[#12372A]/70 mt-1">
+            Monitor your rental equipment, stock, and store transactions.
+        </p>
+    </section>
+
+    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+
+        <div class="bg-white rounded-2xl border border-[#12372A]/10 p-5 shadow-sm">
+            <p class="text-sm text-gray-500">Total Equipment</p>
+            <h2 class="text-3xl font-bold mt-2" th:text="${totalEquipment}">24</h2>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-[#12372A]/10 p-5 shadow-sm">
+            <p class="text-sm text-gray-500">Total Stock</p>
+            <h2 class="text-3xl font-bold mt-2" th:text="${totalStock}">86</h2>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-[#12372A]/10 p-5 shadow-sm">
+            <p class="text-sm text-gray-500">Active Rentals</p>
+            <h2 class="text-3xl font-bold mt-2" th:text="${activeRentals}">7</h2>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-[#12372A]/10 p-5 shadow-sm">
+            <p class="text-sm text-gray-500">Revenue</p>
+            <h2 class="text-3xl font-bold mt-2"
+                th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')}">
+                1500000
+            </h2>
+        </div>
+
+    </section>
+
+    <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+        <div class="bg-white rounded-2xl border border-[#12372A]/10 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-xl font-bold">Recent Transactions</h2>
+                <a th:href="@{/store/transactions}"
+                   class="text-sm font-semibold text-[#F28C73] hover:underline">
+                    View All
+                </a>
+            </div>
+
+            <div class="space-y-4">
+
+                <div th:if="${#lists.isEmpty(listTransaksi)}"
+                     class="text-center py-10 text-gray-500">
+                    No recent transactions yet.
+                </div>
+
+                <div th:each="transaksi : ${listTransaksi}"
+                     class="flex items-center justify-between rounded-xl bg-[#F8F5EC] p-4">
+
+                    <div>
+                        <p class="font-semibold"
+                           th:text="${transaksi.customer.namaLengkap}">
+                            Amelia Putri
+                        </p>
+                        <p class="text-sm text-gray-500">
+                            Return:
+                            <span th:text="${transaksi.tanggalKembali}">
+                                2026-05-30
+                            </span>
+                        </p>
+                    </div>
+
+                    <span class="rounded-full px-3 py-1 text-xs font-semibold"
+                          th:text="${transaksi.statusTransaksi}"
+                          th:classappend="${transaksi.statusTransaksi == 'TERLAMBAT'} ? ' bg-red-100 text-red-700' : ' bg-green-100 text-green-700'">
+                        DIPAKAI
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-[#12372A]/10 p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-xl font-bold">Low Stock Equipment</h2>
+                <a th:href="@{/store/equipment}"
+                   class="text-sm font-semibold text-[#F28C73] hover:underline">
+                    Manage
+                </a>
+            </div>
+
+            <div class="space-y-4">
+
+                <div th:if="${#lists.isEmpty(lowStockList)}"
+                     class="text-center py-10 text-gray-500">
+                    All equipment stock is safe.
+                </div>
+
+                <div th:each="peralatan : ${lowStockList}"
+                     class="flex items-center justify-between rounded-xl bg-[#F8F5EC] p-4">
+
+                    <div>
+                        <p class="font-semibold"
+                           th:text="${peralatan.namaAlat}">
+                            Tenda Dome Borneo 4
+                        </p>
+                        <p class="text-sm text-gray-500"
+                           th:text="${peralatan.kategori.namaKategori}">
+                            Tenda
+                        </p>
+                    </div>
+
+                    <span class="rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-700">
+                        Stock:
+                        <span th:text="${peralatan.stok}">2</span>
+                    </span>
+                </div>
+
+            </div>
+        </div>
+
+    </section>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>

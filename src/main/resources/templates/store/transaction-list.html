@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Store Transactions - CampRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#F8F5EC] text-[#12372A]">
+
+<div th:replace="~{fragments/store-sidebar :: storeSidebar('transactions')}"></div>
+<div th:replace="~{fragments/navbar :: navbar('Transactions')}"></div>
+
+<main class="min-h-screen lg:ml-64 p-6">
+
+    <section class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+        <div>
+            <h1 class="text-3xl font-bold">Rental Transactions</h1>
+
+            <p class="text-sm text-[#12372A]/70 mt-1">
+                Monitor customer rentals, return dates, and transaction status.
+            </p>
+        </div>
+
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 overflow-hidden">
+
+        <div class="overflow-x-auto">
+
+            <table class="w-full text-left">
+
+                <thead class="bg-[#12372A] text-white">
+                <tr>
+                    <th class="px-5 py-4 text-sm font-semibold">Customer</th>
+                    <th class="px-5 py-4 text-sm font-semibold">Rent Date</th>
+                    <th class="px-5 py-4 text-sm font-semibold">Return Date</th>
+                    <th class="px-5 py-4 text-sm font-semibold">Total Price</th>
+                    <th class="px-5 py-4 text-sm font-semibold">Status</th>
+                </tr>
+                </thead>
+
+                <tbody class="divide-y divide-gray-100">
+
+                <tr th:if="${#lists.isEmpty(listTransaksi)}">
+                    <td colspan="5" class="px-5 py-16">
+
+                        <div class="flex flex-col items-center justify-center text-center">
+
+                            <div class="text-6xl mb-4">
+                                📋
+                            </div>
+
+                            <h3 class="text-xl font-bold text-[#12372A]">
+                                No Transactions Yet
+                            </h3>
+
+                            <p class="mt-2 text-sm text-gray-500 max-w-md">
+                                Customer rental transactions will appear here once users start renting equipment.
+                            </p>
+
+                        </div>
+
+                    </td>
+                </tr>
+
+                <tr th:each="transaksi : ${listTransaksi}"
+                    class="hover:bg-[#F8F5EC] transition">
+
+                    <td class="px-5 py-4">
+                        <p class="font-semibold"
+                           th:text="${transaksi.customer.namaLengkap}">
+                            Amelia Putri
+                        </p>
+                    </td>
+
+                    <td class="px-5 py-4"
+                        th:text="${transaksi.tanggalSewa}">
+                        2026-05-28
+                    </td>
+
+                    <td class="px-5 py-4"
+                        th:text="${transaksi.tanggalKembali}">
+                        2026-05-30
+                    </td>
+
+                    <td class="px-5 py-4"
+                        th:text="${#numbers.formatDecimal(transaksi.totalHarga, 0, 'COMMA', 0, 'POINT')}">
+                        250000
+                    </td>
+
+                    <td class="px-5 py-4">
+
+                        <span class="rounded-full px-3 py-1 text-xs font-semibold"
+                              th:text="${transaksi.statusTransaksi}"
+                              th:classappend="
+                              ${transaksi.statusTransaksi == 'PENDING'} ? ' bg-yellow-100 text-yellow-700' :
+                              (${transaksi.statusTransaksi == 'TERLAMBAT'} ? ' bg-red-100 text-red-700' :
+                              ' bg-green-100 text-green-700')">
+
+                            DIPAKAI
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>

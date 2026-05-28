@@ -1,0 +1,66 @@
+<aside id="storeSidebar"
+       th:fragment="storeSidebar(activeMenu)"
+       class="fixed left-0 top-0 z-40 h-screen w-64 bg-[#12372A] text-white flex flex-col transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+
+    <div id="sidebarOverlay"
+         onclick="toggleStoreSidebar()"
+         class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden">
+    </div>
+
+    <div class="px-6 py-6 border-b border-white/10">
+        <h1 class="text-2xl font-bold">
+            Camp<span class="text-[#F28C73]">Rent</span>
+        </h1>
+        <p class="text-sm text-white/60 mt-1">Store Dashboard</p>
+    </div>
+
+    <nav class="flex-1 px-4 py-6 space-y-2">
+
+        <a th:href="@{/store/dashboard}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
+           th:classappend="${activeMenu == 'dashboard'} ? ' bg-[#F28C73] text-white' : ' hover:bg-white/10 text-white/80'">
+            <span>🏠</span>
+            <span>Dashboard</span>
+        </a>
+
+        <a th:href="@{/store/equipment}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
+           th:classappend="${activeMenu == 'equipment'} ? ' bg-[#F28C73] text-white' : ' hover:bg-white/10 text-white/80'">
+            <span>🎒</span>
+            <span>Equipment</span>
+        </a>
+
+        <a th:href="@{/store/equipment/add}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
+           th:classappend="${activeMenu == 'add-equipment'} ? ' bg-[#F28C73] text-white' : ' hover:bg-white/10 text-white/80'">
+            <span>➕</span>
+            <span>Add Equipment</span>
+        </a>
+
+        <a th:href="@{/store/transactions}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
+           th:classappend="${activeMenu == 'transactions'} ? ' bg-[#F28C73] text-white' : ' hover:bg-white/10 text-white/80'">
+            <span>📋</span>
+            <span>Transactions</span>
+        </a>
+
+        <a th:href="@{/store/profile}"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition"
+           th:classappend="${activeMenu == 'profile'} ? ' bg-[#F28C73] text-white' : ' hover:bg-white/10 text-white/80'">
+            <span>🏪</span>
+            <span>Store Profile</span>
+        </a>
+
+    </nav>
+
+    <div class="px-4 py-5 border-t border-white/10">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit"
+                    class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/10 hover:bg-[#F28C73] transition">
+                <span>🚪</span>
+                <span>Logout</span>
+            </button>
+        </form>
+    </div>
+
+</aside>

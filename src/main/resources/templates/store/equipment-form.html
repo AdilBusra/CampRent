@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Equipment Form - CampRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#F8F5EC] text-[#12372A]">
+
+<div th:replace="~{fragments/store-sidebar :: storeSidebar('add-equipment')}"></div>
+
+<div th:replace="~{fragments/navbar :: navbar('Equipment Form')}"></div>
+
+<main class="min-h-screen lg:ml-64 p-6">
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <section class="mb-8">
+        <a th:href="@{/store/equipment}"
+           class="text-sm font-semibold text-[#F28C73] hover:underline">
+            ← Back to Equipment List
+        </a>
+
+        <h1 class="text-3xl font-bold mt-4"
+            th:text="${peralatan.id != null} ? 'Edit Equipment' : 'Add New Equipment'">
+            Add New Equipment
+        </h1>
+
+        <p class="text-sm text-[#12372A]/70 mt-1">
+            Fill in equipment information for your rental inventory.
+        </p>
+    </section>
+
+    <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 p-6 max-w-4xl">
+
+        <form th:action="@{/store/equipment/save}"
+              th:object="${peralatan}"
+              method="post"
+              class="space-y-6">
+
+            <input type="hidden" th:field="*{id}">
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Equipment Name</label>
+                    <input type="text"
+                           th:field="*{namaAlat}"
+                           placeholder="Example: Tenda Dome Borneo 4"
+                           class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Brand</label>
+                    <input type="text"
+                           th:field="*{merek}"
+                           placeholder="Example: Eiger"
+                           class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Category</label>
+                    <select th:field="*{kategori.id}"
+                            class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                        <option value="">Select category</option>
+                        <option th:each="kategori : ${listKategori}"
+                                th:value="${kategori.id}"
+                                th:text="${kategori.namaKategori}">
+                            Tent
+                        </option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Stock</label>
+                    <input type="number"
+                           th:field="*{stok}"
+                           min="0"
+                           placeholder="Example: 10"
+                           class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Rental Price / Day</label>
+                    <input type="number"
+                           th:field="*{hargaSewaPerHari}"
+                           min="0"
+                           placeholder="Example: 80000"
+                           class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Damage Penalty</label>
+                    <input type="number"
+                           th:field="*{dendaKerusakan}"
+                           min="0"
+                           placeholder="Example: 150000"
+                           class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                </div>
+
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold mb-2">Description</label>
+                <textarea th:field="*{deskripsi}"
+                          rows="5"
+                          placeholder="Describe equipment condition, capacity, usage notes, etc."
+                          class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]"></textarea>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                <button type="submit"
+                        class="rounded-xl bg-[#F28C73] px-6 py-3 text-white font-semibold hover:bg-[#e17860] transition">
+                    Save Equipment
+                </button>
+
+                <a th:href="@{/store/equipment}"
+                   class="rounded-xl border border-[#12372A]/20 px-6 py-3 text-center font-semibold hover:bg-[#F8F5EC] transition">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+    </section>
+
+</main>
+
+    <script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>
