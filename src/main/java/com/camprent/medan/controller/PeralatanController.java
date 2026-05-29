@@ -2,6 +2,7 @@ package com.camprent.medan.controller;
 
 import com.camprent.medan.entity.Peralatan;
 import com.camprent.medan.entity.Store;
+import com.camprent.medan.repository.KategoriRepository;
 import com.camprent.medan.repository.StoreRepository;
 import com.camprent.medan.service.PeralatanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,21 @@ public class PeralatanController {
 
     @Autowired
     private StoreRepository storeRepository;
+
+    @Autowired
+    private KategoriRepository kategoriRepository;
+
+    @GetMapping("/add")
+    public String addPeralatan(Model model, Authentication auth) {
+        Store store = storeRepository.findByUserUsername(auth.getName());
+
+        model.addAttribute("peralatan", new Peralatan());
+
+        // Sekarang baris ini aktif, mengirim data kategori asli ke HTML dropdown
+        model.addAttribute("listKategori", kategoriRepository.findAll());
+
+        return "store/peralatan-form";
+    }
 
     // 1. Ambil Data List Peralatan Toko (Aman)
     @GetMapping
@@ -50,12 +66,11 @@ public class PeralatanController {
     }
 
     // 3. Hapus Peralatan (Diberikan Kunci Validasi Toko)
-    @GetMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String deletePeralatan(@PathVariable Long id, Authentication auth) {
         Store store = storeRepository.findByUserUsername(auth.getName());
         Optional<Peralatan> peralatanOptional = peralatanService.getPeralatanById(id);
 
-        // HANYA boleh dihapus jika barangnya ada DAN id tokonya sama dengan toko yang login
         if (peralatanOptional.isPresent() && peralatanOptional.get().getStore().getId().equals(store.getId())) {
             peralatanService.deletePeralatan(id);
         } else {
