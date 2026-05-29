@@ -9,7 +9,61 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface PeralatanRepository extends JpaRepository<Peralatan, Long> {
+public interface
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PeralatanRepository extends JpaRepository<Peralatan, Long> {
 
     // === FITUR UNTUK SISI STORE (Bawaan Kawanmu - JANGAN DIHAPUS) ===
     List<Peralatan> findByStore(Store store);

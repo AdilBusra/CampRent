@@ -9,15 +9,12 @@
 <body class="bg-[#F8F5EC] text-[#12372A]">
 
 <div th:replace="~{fragments/store-sidebar :: storeSidebar('add-equipment')}"></div>
-
 <div th:replace="~{fragments/navbar :: navbar('Equipment Form')}"></div>
 
 <main class="min-h-screen lg:ml-64 p-6">
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
-
     <section class="mb-8">
-        <a th:href="@{/store/equipment}"
+        <a th:href="@{/store/peralatan}"
            class="text-sm font-semibold text-[#F28C73] hover:underline">
             ← Back to Equipment List
         </a>
@@ -32,101 +29,253 @@
         </p>
     </section>
 
-    <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 p-6 max-w-4xl">
+    <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-        <form th:action="@{/store/equipment/save}"
-              th:object="${peralatan}"
-              method="post"
-              class="space-y-6">
+        <div class="xl:col-span-2 bg-white rounded-2xl shadow-sm border border-[#12372A]/10 p-6">
 
-            <input type="hidden" th:field="*{id}">
+            <form th:action="@{/store/peralatan/save}"
+                  th:object="${peralatan}"
+                  method="post"
+                  enctype="multipart/form-data"
+                  class="space-y-6">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <input type="hidden" th:field="*{id}">
 
                 <div>
-                    <label class="block text-sm font-semibold mb-2">Equipment Name</label>
-                    <input type="text"
-                           th:field="*{namaAlat}"
-                           placeholder="Example: Tenda Dome Borneo 4"
+                    <label class="block text-sm font-semibold mb-2">Equipment Picture</label>
+
+                    <label for="equipmentImage"
+                           class="flex h-44 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#12372A]/20 bg-[#F8F5EC] hover:border-[#F28C73] transition">
+
+                        <div class="text-4xl mb-2">📷</div>
+                        <p class="font-semibold">Click to upload equipment photo</p>
+                        <p class="text-sm text-gray-500 mt-1">PNG, JPG, or JPEG</p>
+
+                        <input id="equipmentImage"
+                               name="imageFile"
+                               type="file"
+                               accept="image/*"
+                               class="hidden"
+                               onchange="previewEquipmentImage(event)">
+                    </label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Equipment Name</label>
+                        <input id="equipmentNameInput"
+                               type="text"
+                               th:field="*{namaAlat}"
+                               placeholder="Example: Tenda Dome Borneo 4"
+                               oninput="updateEquipmentPreview()"
+                               class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Brand</label>
+                        <input id="equipmentBrandInput"
+                               type="text"
+                               th:field="*{merek}"
+                               placeholder="Example: Eiger"
+                               oninput="updateEquipmentPreview()"
+                               class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Category</label>
+                        <select id="equipmentCategoryInput"
+                                th:field="*{kategori.id}"
+                                onchange="updateEquipmentPreview()"
+                                class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                            <option value="">Select category</option>
+                            <option th:each="kategori : ${listKategori}"
+                                    th:value="${kategori.id}"
+                                    th:text="${kategori.namaKategori}">
+                                Tent
+                            </option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Stock</label>
+                        <input id="equipmentStockInput"
+                               type="number"
+                               th:field="*{stok}"
+                               min="0"
+                               placeholder="Example: 10"
+                               oninput="updateEquipmentPreview()"
+                               class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Rental Price / Day</label>
+                        <input id="equipmentPriceInput"
+                               type="number"
+                               th:field="*{hargaSewaPerHari}"
+                               min="0"
+                               placeholder="Example: 80000"
+                               oninput="updateEquipmentPreview()"
+                               class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Damage Penalty</label>
+                        <input type="number"
+                               th:field="*{dendaKerusakan}"
+                               min="0"
+                               placeholder="Example: 150000"
+                               class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                    </div>
+
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold mb-2">Description</label>
+                    <input id="equipmentDescriptionInput"
+                           type="text"
+                           th:field="*{deskripsi}"
+                           placeholder="Example: Tenda kapasitas 4 orang, kondisi baik, cocok untuk camping keluarga."
+                           oninput="updateEquipmentPreview()"
                            class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Brand</label>
-                    <input type="text"
-                           th:field="*{merek}"
-                           placeholder="Example: Eiger"
-                           class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                <div class="flex flex-col sm:flex-row gap-3 pt-4">
+                    <button type="submit"
+                            class="rounded-xl bg-[#F28C73] px-6 py-3 text-white font-semibold hover:bg-[#e17860] transition">
+                        Save Equipment
+                    </button>
+
+                    <a th:href="@{/store/peralatan}"
+                       class="rounded-xl border border-[#12372A]/20 px-6 py-3 text-center font-semibold hover:bg-[#F8F5EC] transition">
+                        Cancel
+                    </a>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Category</label>
-                    <select th:field="*{kategori.id}"
-                            class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
-                        <option value="">Select category</option>
-                        <option th:each="kategori : ${listKategori}"
-                                th:value="${kategori.id}"
-                                th:text="${kategori.namaKategori}">
-                            Tent
-                        </option>
-                    </select>
-                </div>
+            </form>
+        </div>
 
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Stock</label>
-                    <input type="number"
-                           th:field="*{stok}"
-                           min="0"
-                           placeholder="Example: 10"
-                           class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Rental Price / Day</label>
-                    <input type="number"
-                           th:field="*{hargaSewaPerHari}"
-                           min="0"
-                           placeholder="Example: 80000"
-                           class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold mb-2">Damage Penalty</label>
-                    <input type="number"
-                           th:field="*{dendaKerusakan}"
-                           min="0"
-                           placeholder="Example: 150000"
-                           class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
-                </div>
-
+        <aside class="h-fit">
+            <div class="mb-4">
+                <h3 class="text-xl font-bold">Customer Card Preview</h3>
+                <p class="text-sm text-[#12372A]/70 mt-1">
+                    This is how your equipment will appear to customers.
+                </p>
             </div>
 
-            <div>
-                <label class="block text-sm font-semibold mb-2">Description</label>
-                <textarea th:field="*{deskripsi}"
-                          rows="5"
-                          placeholder="Describe equipment condition, capacity, usage notes, etc."
-                          class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]"></textarea>
+            <div class="overflow-hidden rounded-2xl bg-white border border-[#12372A]/10 shadow-sm">
+
+                <div class="h-52 bg-[#EAE5D8] flex items-center justify-center">
+                    <img id="previewImage"
+                         src=""
+                         alt="Equipment Preview"
+                         class="hidden h-full w-full object-cover">
+
+                    <div id="previewImagePlaceholder"
+                         class="flex flex-col items-center text-[#12372A]/50">
+                        <div class="text-5xl">🏕️</div>
+                        <p class="text-sm mt-2">Equipment image preview</p>
+                    </div>
+                </div>
+
+                <div class="p-5">
+
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <p id="previewCategory"
+                               class="text-xs font-semibold uppercase text-[#F28C73]">
+                                Category
+                            </p>
+
+                            <h4 id="previewName"
+                                class="mt-1 text-xl font-bold text-[#12372A]">
+                                Equipment Name
+                            </h4>
+                        </div>
+
+                        <span id="previewStock"
+                              class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                            Stock 0
+                        </span>
+                    </div>
+
+                    <p id="previewBrand"
+                       class="text-sm text-gray-500 mt-1">
+                        Brand
+                    </p>
+
+                    <p class="mt-2 text-sm text-[#12372A]/70">
+                        By
+                        <span class="font-semibold text-[#12372A]">
+                        Mountain Adventure
+                    </span>
+                    </p>
+
+                    <p id="previewDescription"
+                       class="text-sm text-[#12372A]/70 mt-4 line-clamp-3">
+                        Equipment description will appear here.
+                    </p>
+
+                    <div class="mt-5 flex items-end justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500">Rental Price</p>
+                            <p class="text-xl font-bold text-[#F28C73]">
+                                Rp <span id="previewPrice">0</span>
+                                <span class="text-sm font-normal text-gray-500">/day</span>
+                            </p>
+                        </div>
+
+                        <button type="button"
+                                class="rounded-xl bg-[#12372A] px-4 py-2 text-sm font-semibold text-white">
+                            Book Now
+                        </button>
+                    </div>
+
+                </div>
             </div>
+        </aside>
 
-            <div class="flex flex-col sm:flex-row gap-3 pt-4">
-                <button type="submit"
-                        class="rounded-xl bg-[#F28C73] px-6 py-3 text-white font-semibold hover:bg-[#e17860] transition">
-                    Save Equipment
-                </button>
-
-                <a th:href="@{/store/equipment}"
-                   class="rounded-xl border border-[#12372A]/20 px-6 py-3 text-center font-semibold hover:bg-[#F8F5EC] transition">
-                    Cancel
-                </a>
-            </div>
-
-        </form>
     </section>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
 
 </main>
 
-    <script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
+<script>
+    function previewEquipmentImage(event) {
+        const file = event.target.files[0];
+        const previewImage = document.getElementById("previewImage");
+        const placeholder = document.getElementById("previewImagePlaceholder");
+
+        if (!file) return;
+
+        const imageUrl = URL.createObjectURL(file);
+
+        previewImage.src = imageUrl;
+        previewImage.classList.remove("hidden");
+        placeholder.classList.add("hidden");
+    }
+
+    function updateEquipmentPreview() {
+        const name = document.getElementById("equipmentNameInput").value;
+        const brand = document.getElementById("equipmentBrandInput").value;
+        const stock = document.getElementById("equipmentStockInput").value;
+        const price = document.getElementById("equipmentPriceInput").value;
+        const description = document.getElementById("equipmentDescriptionInput").value;
+
+        const categorySelect = document.getElementById("equipmentCategoryInput");
+        const categoryText = categorySelect.options[categorySelect.selectedIndex]?.text || "Category";
+
+        document.getElementById("previewName").innerText = name || "Equipment Name";
+        document.getElementById("previewBrand").innerText = brand || "Brand";
+        document.getElementById("previewStock").innerText = "Stock " + (stock || "0");
+        document.getElementById("previewPrice").innerText = price ? Number(price).toLocaleString("id-ID") : "0";
+        document.getElementById("previewDescription").innerText = description || "Equipment description will appear here.";
+        document.getElementById("previewCategory").innerText = categoryText === "Select category" ? "Category" : categoryText;
+    }
+</script>
 
 </body>
 </html>

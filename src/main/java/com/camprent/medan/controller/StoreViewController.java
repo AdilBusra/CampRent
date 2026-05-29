@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.camprent.medan.entity.Peralatan;
+import com.camprent.medan.entity.User;
 import com.camprent.medan.entity.Customer;
 import com.camprent.medan.entity.Transaksi;
 
@@ -45,17 +47,6 @@ public class StoreViewController {
         return "store/equipment-list";
     }
 
-    @GetMapping("/store/equipment/add")
-    public String equipmentForm(Model model) {
-        Store store = new Store();
-        store.setNamaToko("Mountain Adventure");
-
-        model.addAttribute("store", store);
-        model.addAttribute("listKategori", new ArrayList<>());
-
-        return "store/equipment-form";
-    }
-
     @GetMapping("/store/transactions")
     public String transactions(Model model) {
 
@@ -81,4 +72,36 @@ public class StoreViewController {
 
         return "store/transaction-list";
     }
+
+    @GetMapping("/store/profile")
+    public String storeProfile(Model model) {
+        Store store = new Store();
+        store.setNamaToko("Mountain Adventure");
+        store.setAlamat("Jl. Setia Budi, Medan");
+        store.setNomorTelepon("0812-3456-7890");
+        store.setStatusVerifikasi("VERIFIED");
+
+        User user = new User();
+        user.setEmail("store@camprent.com");
+        store.setUser(user);
+
+        model.addAttribute("store", store);
+
+        return "store/profile";
+    }
+
+    @GetMapping("/store/preview/peralatan/add")
+    public String previewEquipmentForm(Model model) {
+        Store store = new Store();
+        store.setNamaToko("Mountain Adventure");
+
+        Peralatan peralatan = new Peralatan();
+
+        model.addAttribute("store", store);
+        model.addAttribute("peralatan", peralatan);
+        model.addAttribute("listKategori", new ArrayList<>());
+
+        return "store/equipment-form";
+    }
+
 }

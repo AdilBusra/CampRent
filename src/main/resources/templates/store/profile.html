@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Store Profile - CampRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#F8F5EC] text-[#12372A]">
+
+<div th:replace="~{fragments/store-sidebar :: storeSidebar('profile')}"></div>
+<div th:replace="~{fragments/navbar :: navbar('Store Profile')}"></div>
+
+<main class="min-h-screen lg:ml-64 p-6">
+
+    <section class="mb-8">
+        <h1 class="text-3xl font-bold">Store Profile</h1>
+        <p class="text-sm text-[#12372A]/70 mt-1">
+            View and manage your store information on CampRent.
+        </p>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <div class="bg-white rounded-2xl border border-[#12372A]/10 shadow-sm p-6 lg:col-span-1">
+            <div class="flex flex-col items-center text-center">
+
+                <div class="w-24 h-24 rounded-full bg-[#12372A] text-white flex items-center justify-center text-4xl font-bold">
+                    S
+                </div>
+
+                <h2 class="text-xl font-bold mt-4"
+                    th:text="${store.namaToko}">
+                    Mountain Adventure
+                </h2>
+
+                <p class="text-sm text-gray-500 mt-1">
+                    Store Partner
+                </p>
+
+                <span class="mt-4 rounded-full px-4 py-2 text-sm font-semibold"
+                      th:text="${store.statusVerifikasi}"
+                      th:classappend="${store.statusVerifikasi == 'VERIFIED'} ? ' bg-green-100 text-green-700' :
+                                      (${store.statusVerifikasi == 'PENDING'} ? ' bg-yellow-100 text-yellow-700' :
+                                      ' bg-red-100 text-red-700')">
+                    VERIFIED
+                </span>
+
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-[#12372A]/10 shadow-sm p-6 lg:col-span-2">
+
+            <div class="flex items-center justify-between mb-6">
+
+                <h3 class="text-xl font-bold">
+                    Store Information
+                </h3>
+
+                <button type="button"
+                        onclick="openEditProfileModal()"
+                        class="rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
+                    ✏ Edit Profile
+                </button>
+
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                <div>
+                    <p class="text-sm text-gray-500">Store Name</p>
+                    <p class="font-semibold mt-1"
+                       th:text="${store.namaToko}">
+                        Mountain Adventure
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Phone Number</p>
+                    <p class="font-semibold mt-1"
+                       th:text="${store.nomorTelepon}">
+                        0812-3456-7890
+                    </p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <p class="text-sm text-gray-500">Address</p>
+                    <p class="font-semibold mt-1"
+                       th:text="${store.alamat}">
+                        Jl. Setia Budi, Medan
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Email</p>
+                    <p class="font-semibold mt-1"
+                       th:text="${store.user.email}">
+                        store@camprent.com
+                    </p>
+                </div>
+
+                <div>
+                    <p class="text-sm text-gray-500">Verification Status</p>
+                    <p class="font-semibold mt-1"
+                       th:text="${store.statusVerifikasi}">
+                        VERIFIED
+                    </p>
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</main>
+
+<script th:src="@{/js/main.js}"></script>
+
+<div id="editProfileModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
+
+    <div class="w-full max-w-xl rounded-2xl bg-white p-6">
+
+        <h2 class="text-2xl font-bold mb-5">
+            Edit Store Profile
+        </h2>
+
+        <div>
+
+            <label class="block text-sm font-semibold mb-2">
+                Store Logo
+            </label>
+
+            <div class="flex items-center gap-4">
+
+                <div class="w-20 h-20 rounded-full bg-[#12372A] flex items-center justify-center text-white text-2xl font-bold">
+                    S
+                </div>
+
+                <label class="cursor-pointer rounded-xl border px-4 py-3 hover:bg-[#F8F5EC]">
+                    Change Photo
+
+                    <input type="file"
+                           accept="image/*"
+                           class="hidden">
+                </label>
+
+            </div>
+
+        </div>
+
+        <div class="space-y-4">
+
+            <input type="text"
+                   value="Mountain Adventure"
+                   class="w-full rounded-xl border p-3">
+
+
+            <input type="email"
+                   value="store@camprent.com"
+                   class="w-full rounded-xl border p-3">
+
+
+            <input type="text"
+                   value="0812-3456-7890"
+                   class="w-full rounded-xl border p-3">
+
+            <textarea
+                    class="w-full rounded-xl border p-3"
+                    rows="4">Jl. Setia Budi, Medan</textarea>
+
+            <textarea
+                    rows="4"
+                    class="w-full rounded-xl border p-3"
+                    placeholder="Describe your store..."></textarea>
+
+        </div>
+
+        <div class="mt-6 flex justify-end gap-3">
+
+            <button onclick="closeEditProfileModal()"
+                    class="rounded-xl border px-5 py-3">
+                Cancel
+            </button>
+
+            <button
+                    class="rounded-xl bg-[#F28C73] px-5 py-3 text-white">
+                Save
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
