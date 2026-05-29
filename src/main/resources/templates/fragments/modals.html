@@ -32,30 +32,71 @@
             </div>
         </div>
 
-        <div id="signupModal" class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform scale-95 transition-transform duration-500 hidden relative">
+        <div id="signupModal" class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md transform scale-95 transition-transform duration-500 hidden relative max-h-[90vh] overflow-y-auto">
             <button onclick="closeAllModals()" aria-label="Close modal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-lg">&times;</button>
 
-            <h3 class="text-2xl font-bold text-[#19381C] text-center mb-2">Create Account</h3>
-            <p class="text-xs text-gray-500 text-center mb-6">Bergabung sebagai Camper untuk kemudahan bertransaksi.</p>
+            <h3 class="text-2xl font-bold text-[#19381C] text-center mb-1">Create Account</h3>
+            <p id="signupSub" class="text-xs text-gray-500 text-center mb-4">Bergabung bersama CampRent Medan</p>
 
-            <form th:action="@{/register}" method="POST" class="space-y-3 text-sm">
+            <div class="mb-4 bg-gray-100 p-1 rounded-lg flex gap-1 text-xs font-semibold">
+                <button type="button" id="tabCustomer" onclick="switchRegisterRole('CUSTOMER')" class="w-full py-2 rounded-md transition-all bg-[#19381C] text-white shadow">
+                    🏃 Penyewa
+                </button>
+                <button type="button" id="tabStore" onclick="switchRegisterRole('STORE')" class="w-full py-2 rounded-md transition-all text-gray-600 hover:bg-gray-200">
+                    🏪 Mitra Toko
+                </button>
+            </div>
+
+            <form th:action="@{/register}" method="POST" class="space-y-3 text-sm" id="formPendaftaran">
+
+                <input type="hidden" name="role" id="rolePendaftaran" value="CUSTOMER">
+
                 <div>
-                    <label for="regNama" class="block text-gray-700 font-medium mb-1">Nama Lengkap</label>
-                    <input type="text" id="regNama" name="nama" placeholder="Nama sesuai KTP" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
+                    <label for="regUsername" class="block text-gray-700 font-medium mb-1">Username</label>
+                    <input type="text" id="regUsername" name="username" placeholder="Username untuk login" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
                 </div>
                 <div>
                     <label for="regEmail" class="block text-gray-700 font-medium mb-1">Email</label>
                     <input type="email" id="regEmail" name="email" placeholder="contoh@gmail.com" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
                 </div>
                 <div>
-                    <label for="regTelp" class="block text-gray-700 font-medium mb-1">No. WhatsApp</label>
-                    <input type="tel" id="regTelp" name="telepon" placeholder="0812xxxx" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
-                </div>
-                <div>
                     <label for="regPass" class="block text-gray-700 font-medium mb-1">Password</label>
                     <input type="password" id="regPass" name="password" placeholder="Minimal 6 karakter" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]" required>
                 </div>
-                <button type="submit" class="w-full bg-[#E27252] text-white py-2.5 rounded-md font-semibold hover:bg-[#c85f41] transition duration-300 shadow mt-2">Daftar Akun</button>
+
+                <hr class="border-gray-100 my-3">
+
+                <div id="wrapperCustomer" class="space-y-3">
+                    <div>
+                        <label for="regNama" class="block text-gray-700 font-medium mb-1">Nama Lengkap</label>
+                        <input type="text" id="regNama" name="namaLengkap" placeholder="Nama sesuai KTP" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]">
+                    </div>
+                    <div>
+                        <label for="regTelpCustomer" class="block text-gray-700 font-medium mb-1">No. WhatsApp</label>
+                        <input type="tel" id="regTelpCustomer" name="nomorTeleponCustomer" placeholder="0812xxxx" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]">
+                    </div>
+                    <div>
+                        <label for="regNik" class="block text-gray-700 font-medium mb-1">NIK (Jaminan Keamanan)</label>
+                        <input type="text" id="regNik" name="nik" placeholder="16 digit NIK" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]">
+                    </div>
+                </div>
+
+                <div id="wrapperStore" class="space-y-3 hidden">
+                    <div>
+                        <label for="regNamaToko" class="block text-gray-700 font-medium mb-1">Nama Toko</label>
+                        <input type="text" id="regNamaToko" name="namaToko" placeholder="Contoh: Medan Outdoor Camp" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]">
+                    </div>
+                    <div>
+                        <label for="regTelpStore" class="block text-gray-700 font-medium mb-1">No. Telepon Toko</label>
+                        <input type="tel" id="regTelpStore" name="nomorTeleponStore" placeholder="0821xxxx" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]">
+                    </div>
+                    <div>
+                        <label for="regAlamat" class="block text-gray-700 font-medium mb-1">Alamat Fisik Toko</label>
+                        <input type="text" id="regAlamat" name="alamat" placeholder="Contoh: Jl. Dr. Mansyur No. 9 Medan" class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-[#E27252] text-white py-2.5 rounded-md font-semibold hover:bg-[#c85f41] transition duration-300 shadow mt-4 cursor-pointer">Daftar Akun</button>
             </form>
 
             <div class="text-center text-xs text-gray-500 mt-6">
@@ -64,6 +105,62 @@
         </div>
 
     </div>
+
+    <script>
+        function switchRegisterRole(role) {
+            const currentRole = document.getElementById('rolePendaftaran');
+            const subTitle = document.getElementById('signupSub');
+
+            const viewCustomer = document.getElementById('wrapperCustomer');
+            const viewStore = document.getElementById('wrapperStore');
+
+            const btnCustomer = document.getElementById('tabCustomer');
+            const btnStore = document.getElementById('tabStore');
+
+            currentRole.value = role;
+
+            if (role === 'CUSTOMER') {
+                subTitle.innerText = "Bergabung sebagai Camper untuk kemudahan bertransaksi.";
+                viewCustomer.classList.remove('hidden');
+                viewStore.classList.add('hidden');
+
+                // Toggle Style Button Aktif (Hijau) & Pasif (Abu-abu)
+                btnCustomer.className = "w-full py-2 rounded-md transition-all bg-[#19381C] text-white shadow";
+                btnStore.className = "w-full py-2 rounded-md transition-all text-gray-600 hover:bg-gray-200";
+
+                // Atur Validasi 'Required' Atribut Input HTML5
+                document.getElementById('regNama').required = true;
+                document.getElementById('regTelpCustomer').required = true;
+                document.getElementById('regNik').required = true;
+
+                document.getElementById('regNamaToko').required = false;
+                document.getElementById('regTelpStore').required = false;
+                document.getElementById('regAlamat').required = false;
+            } else {
+                subTitle.innerText = "Daftarkan toko camping Anda untuk menjangkau pendaki di Medan.";
+                viewCustomer.classList.add('hidden');
+                viewStore.classList.remove('hidden');
+
+                // Toggle Style Button Aktif (Hijau) & Pasif (Abu-abu)
+                btnStore.className = "w-full py-2 rounded-md transition-all bg-[#19381C] text-white shadow";
+                btnCustomer.className = "w-full py-2 rounded-md transition-all text-gray-600 hover:bg-gray-200";
+
+                // Atur Validasi 'Required' Atribut Input HTML5
+                document.getElementById('regNama').required = false;
+                document.getElementById('regTelpCustomer').required = false;
+                document.getElementById('regNik').required = false;
+
+                document.getElementById('regNamaToko').required = true;
+                document.getElementById('regTelpStore').required = true;
+                document.getElementById('regAlamat').required = true;
+            }
+        }
+
+        // Jalankan inisialisasi default agar form dalam kondisi sedia untuk Customer
+        document.addEventListener("DOMContentLoaded", function() {
+            switchRegisterRole('CUSTOMER');
+        });
+    </script>
 
 </div>
 </body>
