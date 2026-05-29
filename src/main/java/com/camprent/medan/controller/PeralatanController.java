@@ -22,7 +22,7 @@ public class PeralatanController {
     @Autowired
     private StoreRepository storeRepository;
 
-    // Halaman daftar peralatan milik toko
+    // 1. Ambil Data List Peralatan Toko (Aman)
     @GetMapping
     public String listPeralatan(Authentication auth, Model model) {
         Store store = storeRepository.findByUserUsername(auth.getName());
@@ -31,29 +31,53 @@ public class PeralatanController {
         return "store/peralatan";
     }
 
-    // Simpan peralatan baru atau update
+    // 2. Simpan & Update Peralatan (Ditambahkan Proteksi)
     @PostMapping("/save")
-    public String savePeralatan(@ModelAttribute Peralatan peralatan,
-                                Authentication auth) {
+    public String savePeralatan(@ModelAttribute Peralatan peralatan, Authentication auth) {
         Store store = storeRepository.findByUserUsername(auth.getName());
+
+        // Proteksi Edit: Jika ini proses update (ID tidak kosong), pastikan barang itu milik toko ini
+        if (peralatan.getId() != null) {
+            Optional<Peralatan> existingPeralatan = peralatanService.getPeralatanById(peralatan.getId());
+            if (existingPeralatan.isEmpty() || !existingPeralatan.get().getStore().getId().equals(store.getId())) {
+                return "redirect:/store/peralatan?error=AksesDitolak";
+            }
+        }
+
         peralatan.setStore(store);
         peralatanService.savePeralatan(peralatan);
         return "redirect:/store/peralatan";
     }
 
-    // Hapus peralatan
+    // 3. Hapus Peralatan (Diberikan Kunci Validasi Toko)
     @GetMapping("/delete/{id}")
-    public String deletePeralatan(@PathVariable Long id) {
-        peralatanService.deletePeralatan(id);
+    public String deletePeralatan(@PathVariable Long id, Authentication auth) {
+        Store store = storeRepository.findByUserUsername(auth.getName());
+        Optional<Peralatan> peralatanOptional = peralatanService.getPeralatanById(id);
+
+        // HANYA boleh dihapus jika barangnya ada DAN id tokonya sama dengan toko yang login
+        if (peralatanOptional.isPresent() && peralatanOptional.get().getStore().getId().equals(store.getId())) {
+            peralatanService.deletePeralatan(id);
+        } else {
+            return "redirect:/store/peralatan?error=GagalHapus";
+        }
+
         return "redirect:/store/peralatan";
     }
 
-    // Form edit peralatan
+    // 4. Form Edit Peralatan (Diberikan Kunci Validasi Toko)
     @GetMapping("/edit/{id}")
     public String editPeralatan(@PathVariable Long id, Model model, Authentication auth) {
-        Optional<Peralatan> peralatan = peralatanService.getPeralatanById(id);
         Store store = storeRepository.findByUserUsername(auth.getName());
-        peralatan.ifPresent(p -> model.addAttribute("peralatan", p));
+        Optional<Peralatan> peralatanOptional = peralatanService.getPeralatanById(id);
+
+        // HANYA boleh diedit jika barangnya ada DAN id tokonya klop
+        if (peralatanOptional.isPresent() && peralatanOptional.get().getStore().getId().equals(store.getId())) {
+            model.addAttribute("peralatan", peralatanOptional.get());
+        } else {
+            return "redirect:/store/peralatan?error=AksesDitolak";
+        }
+
         model.addAttribute("peralatanList", peralatanService.getPeralatanByStore(store));
         return "store/peralatan";
     }
