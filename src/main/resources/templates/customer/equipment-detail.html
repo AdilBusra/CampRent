@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Equipment Detail - CampRent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#F4F4F2] text-slate-800 font-sans antialiased">
+
+<div th:replace="~{fragments/customer-navbar :: customerNavbar('catalog')}"></div>
+
+<main class="pt-24 min-h-screen">
+
+  <section class="max-w-7xl mx-auto px-8 pb-16">
+
+    <a th:href="@{/customer/katalog}"
+       class="text-sm font-semibold text-[#E27252] hover:underline">
+      ← Back to Catalog
+    </a>
+
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-10">
+
+      <div class="bg-[#EAE5D8] rounded-3xl h-[520px] flex items-center justify-center shadow-sm">
+        <div class="text-9xl">🏕️</div>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+
+        <div class="flex items-center justify-between">
+                    <span class="rounded-full bg-[#E27252]/10 px-4 py-2 text-xs font-bold text-[#E27252]">
+                        TENT
+                    </span>
+
+          <span class="rounded-full bg-green-100 px-4 py-2 text-xs font-bold text-green-700">
+                        Stock 5
+                    </span>
+        </div>
+
+        <h1 class="mt-6 text-4xl font-bold text-[#19381C]">
+          Tent Dome Borneo 4
+        </h1>
+
+        <p class="mt-2 text-gray-500">
+          Brand: Eiger
+        </p>
+
+        <div class="mt-5 flex items-center gap-3">
+          <div class="w-11 h-11 rounded-full bg-[#19381C] text-white flex items-center justify-center font-bold">
+            S
+          </div>
+
+          <div>
+            <p class="text-xs text-gray-500">Rental Store</p>
+            <a th:href="@{/customer/store/1}"
+               class="font-bold text-[#19381C] hover:text-[#E27252]">
+              Mountain Adventure
+            </a>
+          </div>
+        </div>
+
+        <p class="mt-6 text-gray-600 leading-relaxed">
+          Tenda kapasitas 4 orang, cocok untuk camping keluarga atau pendakian ringan.
+          Kondisi bersih, kuat, dan siap digunakan.
+        </p>
+
+        <div class="mt-8 rounded-2xl bg-[#F4F4F2] p-5">
+          <p class="text-sm text-gray-500">Rental Price</p>
+
+          <p class="text-3xl font-bold text-[#E27252] mt-1">
+            Rp 80.000
+            <span class="text-base font-normal text-gray-500">/day</span>
+          </p>
+        </div>
+
+        <div class="mt-8 grid grid-cols-2 gap-4">
+
+          <button type="button"
+                  class="rounded-xl border border-[#19381C]/20 px-5 py-4 font-semibold hover:bg-[#F4F4F2]">
+            Add to Cart
+          </button>
+
+          <button type="button"
+                  class="rounded-xl bg-[#E27252] px-5 py-4 text-white font-semibold hover:bg-[#c85f41]">
+            Book Now
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <section class="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+        <h2 class="text-2xl font-bold text-[#19381C]">
+          Equipment Description
+        </h2>
+
+        <p class="mt-4 text-gray-600 leading-relaxed">
+          Peralatan ini tersedia untuk disewa harian. Customer dapat melakukan booking melalui aplikasi,
+          kemudian mengambil barang langsung ke toko sesuai waktu yang ditentukan.
+        </p>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+        <h2 class="text-2xl font-bold text-[#19381C]">
+          Store Information
+        </h2>
+
+        <div class="mt-5 space-y-3 text-sm text-gray-600">
+          <p>🏪 Mountain Adventure</p>
+          <p>📍 Medan, Sumatera Utara</p>
+          <p>✅ Verified Store Partner</p>
+        </div>
+      </div>
+
+    </section>
+
+  </section>
+
+</main>
+
+</body>
+</html>

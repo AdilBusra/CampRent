@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Categories - CampRent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#F4F4F2] text-slate-800 font-sans antialiased">
+
+<div th:replace="~{fragments/customer-navbar :: customerNavbar('categories')}"></div>
+
+<main class="pt-24 min-h-screen">
+
+  <section class="max-w-7xl mx-auto px-8 mb-8">
+    <h1 class="text-3xl font-bold text-[#19381C]">
+      Categories
+    </h1>
+
+    <p class="text-sm text-gray-500 mt-2">
+      Explore outdoor rental equipment by category.
+    </p>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-8 mb-10">
+    <form class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex gap-3">
+
+      <input type="text"
+             placeholder="Search category..."
+             class="flex-1 rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E27252]">
+
+      <button type="button"
+              class="rounded-xl bg-[#E27252] px-6 py-3 text-white font-semibold hover:bg-[#c85f41]">
+        Search
+      </button>
+
+    </form>
+  </section>
+
+  <section class="max-w-7xl mx-auto px-8 pb-16">
+
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+
+      <!-- Tent -->
+      <a th:href="@{/customer/categories/Tent}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img th:src="@{/images/categories/tent.png}"
+               alt="Tent"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Tent
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Camping shelter
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Backpack -->
+      <a th:href="@{/customer/categories/Backpack}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img th:src="@{/images/categories/backpack.png}"
+               alt="Backpack"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Backpack
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Carrier & bag
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Hiking Shoes -->
+      <a th:href="@{/customer/categories/Hiking-Shoes}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img th:src="@{/images/categories/shoes.png}"
+               alt="Hiking Shoes"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Hiking Shoes
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Outdoor footwear
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Cooking -->
+      <a th:href="@{/customer/categories/Cooking}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img th:src="@{/images/categories/cooking.png}"
+               alt="Cooking"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Cooking
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Cooking tools
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Lighting -->
+      <a th:href="@{/customer/categories/Lighting}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img th:src="@{/images/categories/lighting.png}"
+               alt="Lighting"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Lighting
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Lamp & headlamp
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Sleeping Gear -->
+      <a th:href="@{/customer/categories/Sleeping-Gear}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img th:src="@{/images/categories/sleeping.png}"
+               alt="Sleeping Gear"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Sleeping Gear
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Matras & sleeping bag
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Jacket -->
+      <a th:href="@{/customer/categories/Jacket}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img src="https://images.unsplash.com/photo-1548126032-079a0fb0099d?auto=format&fit=crop&w=800&q=80"
+               alt="Jacket"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Jacket
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Outdoor jacket
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Trekking Pole -->
+      <a th:href="@{/customer/categories/Trekking-Pole}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img src="https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&w=800&q=80"
+               alt="Trekking Pole"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Trekking Pole
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Hiking support
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Hammock -->
+      <a th:href="@{/customer/categories/Hammock}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=800&q=80"
+               alt="Hammock"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Hammock
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Outdoor relaxation
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Camping Table -->
+      <a th:href="@{/customer/categories/Camping-Table}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img src="https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80"
+               alt="Camping Table"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Camping Table
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Table & chair set
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Navigation Tools -->
+      <a th:href="@{/customer/categories/Navigation}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=80"
+               alt="Navigation"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Navigation
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Compass & tools
+          </p>
+        </div>
+
+      </a>
+
+      <!-- Raincoat -->
+      <a th:href="@{/customer/categories/Raincoat}"
+         class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md hover:border-[#E27252] transition">
+
+        <div class="h-44 overflow-hidden bg-[#19381C]/10">
+          <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=80"
+               alt="Raincoat"
+               class="w-full h-full object-cover">
+        </div>
+
+        <div class="p-5 text-center">
+          <h3 class="font-bold text-[#19381C] text-lg">
+            Raincoat
+          </h3>
+
+          <p class="text-xs text-gray-400 mt-1">
+            Rain protection
+          </p>
+        </div>
+
+      </a>
+
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+</html>

@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
@@ -17,6 +18,13 @@ public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
+
+    @GetMapping("/dashboard")
+    public String customerDashboard(Model model) {
+        List<Peralatan> listKatalog = customerService.getKatalogUtama();
+        model.addAttribute("listKatalog", listKatalog);
+        return "customer/dashboard";
+    }
 
     /**
      * Menampilkan halaman katalog utama untuk Customer.
@@ -39,5 +47,46 @@ public class CustomerController {
         model.addAttribute("listKatalog", listKatalog);
 
         return "customer/katalog-list"; // Mengarah ke src/main/resources/templates/customer/katalog-list.html
+    }
+
+    @GetMapping("/categories")
+    public String customerCategories() {
+        return "customer/categories";
+    }
+
+    @GetMapping("/equipment/{id}")
+    public String equipmentDetail(@PathVariable Long id) {
+        return "customer/equipment-detail";
+    }
+
+    @GetMapping("/cart")
+    public String customerCart() {
+        return "customer/cart";
+    }
+
+    @GetMapping("/my-booking")
+    public String myBooking() {
+        return "customer/my-booking";
+    }
+
+    @GetMapping("/store/{id}")
+    public String customerStoreDetail(@PathVariable Long id) {
+        return "customer/store-detail";
+    }
+
+    @GetMapping("/categories/{categoryName}")
+    public String customerCategoryDetail(@PathVariable String categoryName, Model model) {
+        model.addAttribute("categoryName", categoryName);
+        return "customer/category-detail";
+    }
+
+    @GetMapping("/booking-success")
+    public String bookingSuccess() {
+        return "customer/booking-success";
+    }
+
+    @GetMapping("/profile")
+    public String customerProfile() {
+        return "customer/profile";
     }
 }
