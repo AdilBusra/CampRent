@@ -3,10 +3,11 @@ package com.camprent.medan.repository;
 import com.camprent.medan.entity.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
-    // Cari profil customer berdasarkan username user-nya
-    Customer findByUserUsername(String username);
+    // Fungsi vital: Mencari profil Customer berdasarkan username akun Login-nya
+    Optional<Customer> findByUserUsername(String username);
 }
