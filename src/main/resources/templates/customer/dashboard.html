@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Dashboard - CampRent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#F4F4F2] text-slate-800 font-sans antialiased">
+
+<div th:replace="~{fragments/customer-navbar :: customerNavbar('home')}"></div>
+
+<header class="relative min-h-screen flex items-center px-8 md:px-16 pt-20 overflow-hidden">
+
+  <img th:src="@{/images/hero-camping.png}"
+       alt="Camping Hero"
+       class="absolute inset-0 h-full w-full object-cover">
+
+  <div class="absolute inset-0 bg-[#19381C]/60"></div>
+
+  <div class="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+
+    <div class="max-w-2xl text-white space-y-6">
+      <p class="text-[#E27252] font-semibold">
+        Welcome back, Camper!
+      </p>
+
+      <h1 class="text-4xl md:text-6xl font-extrabold leading-tight">
+        Rent Your Camp Gear <span class="text-[#E27252]">Easily!</span>
+      </h1>
+
+      <p class="text-lg opacity-90">
+        Cari dan booking perlengkapan hiking, camping, dan outdoor dari toko rental terpercaya di Medan.
+      </p>
+
+      <div class="flex flex-wrap gap-4">
+        <a th:href="@{/customer/katalog}"
+           class="bg-[#E27252] px-6 py-3 rounded-md font-semibold hover:bg-[#c85f41] transition shadow">
+          Explore Gear
+        </a>
+
+        <a href="#categories"
+           class="border-2 border-white px-6 py-3 rounded-md font-semibold hover:bg-white hover:text-[#19381C] transition">
+          View Categories
+        </a>
+      </div>
+    </div>
+
+    <div class="hidden lg:block bg-white p-6 rounded-xl shadow-2xl w-96 text-sm justify-self-end">
+      <h3 class="font-bold text-lg text-[#19381C] mb-4">
+        Find Your Gear
+      </h3>
+
+      <form th:action="@{/customer/katalog}" method="get" class="space-y-4">
+        <div>
+          <label class="block text-gray-600 font-medium mb-1">
+            Search Equipment
+          </label>
+
+          <input type="text"
+                 name="keyword"
+                 th:value="${keyword}"
+                 placeholder="Search tent, carrier, stove..."
+                 class="w-full p-2.5 border rounded-md bg-gray-50 focus:outline-[#19381C]">
+        </div>
+
+        <button type="submit"
+                class="w-full bg-[#E27252] text-white py-2.5 rounded-md font-semibold hover:bg-[#c85f41] transition shadow">
+          Search Gear
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+</header>
+
+<section id="categories" class="max-w-7xl mx-auto px-8 py-16 scroll-mt-20">
+
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h2 class="text-2xl font-bold text-[#19381C]">
+        Categories
+      </h2>
+
+      <p class="text-gray-500 text-sm mt-1">
+        Pilih kategori alat sesuai kebutuhan petualanganmu.
+      </p>
+    </div>
+
+    <a th:href="@{/customer/categories}"
+       class="bg-[#E27252] px-5 py-3 rounded-md font-semibold text-white hover:bg-[#c85f41] transition shadow">
+      See More
+    </a>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+    <a th:href="@{/customer/categories/Tent}"
+       class="bg-white p-5 rounded-2xl shadow-sm text-center border border-gray-100 hover:border-[#E27252] hover:shadow-md transition group">
+      <img th:src="@{/images/categories/tent.png}"
+           alt="Tent"
+           class="h-32 w-full object-cover rounded-xl mb-4">
+      <h3 class="font-bold text-gray-800">Tent</h3>
+    </a>
+
+    <a th:href="@{/customer/categories/Backpack}"
+       class="bg-white p-5 rounded-2xl shadow-sm text-center border border-gray-100 hover:border-[#E27252] hover:shadow-md transition group">
+      <img th:src="@{/images/categories/backpack.png}"
+           alt="Backpack"
+           class="h-32 w-full object-cover rounded-xl mb-4">
+      <h3 class="font-bold text-gray-800">Backpack</h3>
+    </a>
+
+    <a th:href="@{/customer/categories/Hiking-Shoes}"
+       class="bg-white p-5 rounded-2xl shadow-sm text-center border border-gray-100 hover:border-[#E27252] hover:shadow-md transition group">
+      <img th:src="@{/images/categories/shoes.png}"
+           alt="Hiking Shoes"
+           class="h-32 w-full object-cover rounded-xl mb-4">
+      <h3 class="font-bold text-gray-800">Hiking Shoes</h3>
+    </a>
+
+    <a th:href="@{/customer/categories/Cooking}"
+       class="bg-white p-5 rounded-2xl shadow-sm text-center border border-gray-100 hover:border-[#E27252] hover:shadow-md transition group">
+      <img th:src="@{/images/categories/cooking.png}"
+           alt="Cooking"
+           class="h-32 w-full object-cover rounded-xl mb-4">
+      <h3 class="font-bold text-gray-800">Cooking</h3>
+    </a>
+
+  </div>
+
+</section>
+
+<section id="explore" class="max-w-7xl mx-auto px-8 py-12 scroll-mt-20">
+
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h2 class="text-2xl font-bold text-[#19381C]">
+        Popular Rentals
+      </h2>
+
+      <p class="text-gray-500 text-sm mt-1">
+        Peralatan populer yang tersedia untuk dibooking.
+      </p>
+    </div>
+
+    <a th:href="@{/customer/katalog}"
+       class="text-sm font-semibold text-[#E27252] hover:underline">
+      View All
+    </a>
+  </div>
+
+  <div th:if="${#lists.isEmpty(listKatalog)}"
+       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+    <article class="overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition">
+      <div class="h-52 bg-[#EAE5D8]">
+        <img th:src="@{/images/placeholders/equipment-placeholder.png}"
+             alt="Equipment"
+             class="w-full h-full object-cover">
+      </div>
+
+      <div class="p-5">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold text-[#E27252]">TENT</p>
+
+          <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                        Stock 5
+                    </span>
+        </div>
+
+        <h3 class="mt-3 text-xl font-bold text-[#19381C]">
+          Tent Dome Borneo 4
+        </h3>
+
+        <p class="text-sm text-gray-500 mt-1">
+          Eiger
+        </p>
+
+        <p class="mt-3 text-sm">
+          By
+          <a th:href="@{/customer/store/1}"
+             class="font-semibold text-[#19381C] hover:text-[#E27252]">
+            Mountain Adventure
+          </a>
+        </p>
+
+        <p class="mt-4 text-sm text-gray-500">
+          Comfortable tent for camping with friends or family.
+        </p>
+
+        <div class="mt-5 flex items-end justify-between">
+          <div>
+            <p class="text-xs text-gray-500">Rental Price</p>
+            <p class="text-xl font-bold text-[#E27252]">
+              Rp 80.000
+              <span class="text-sm text-gray-500 font-normal">/day</span>
+            </p>
+          </div>
+
+          <a th:href="@{/customer/equipment/1}"
+             class="rounded-xl bg-[#19381C] px-4 py-3 text-sm text-white font-semibold">
+            Detail
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <article class="overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition">
+      <div class="h-52 bg-[#EAE5D8]">
+        <img th:src="@{/images/placeholders/equipment-placeholder.png}"
+             alt="Equipment"
+             class="w-full h-full object-cover">
+      </div>
+
+      <div class="p-5">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold text-[#E27252]">BACKPACK</p>
+
+          <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                        Stock 3
+                    </span>
+        </div>
+
+        <h3 class="mt-3 text-xl font-bold text-[#19381C]">
+          Carrier Eiger 60L
+        </h3>
+
+        <p class="text-sm text-gray-500 mt-1">
+          Eiger
+        </p>
+
+        <p class="mt-3 text-sm">
+          By
+          <a th:href="@{/customer/store/1}"
+             class="font-semibold text-[#19381C] hover:text-[#E27252]">
+            Mountain Adventure
+          </a>
+        </p>
+
+        <p class="mt-4 text-sm text-gray-500">
+          Spacious carrier bag for hiking and camping trips.
+        </p>
+
+        <div class="mt-5 flex items-end justify-between">
+          <div>
+            <p class="text-xs text-gray-500">Rental Price</p>
+            <p class="text-xl font-bold text-[#E27252]">
+              Rp 70.000
+              <span class="text-sm text-gray-500 font-normal">/day</span>
+            </p>
+          </div>
+
+          <a th:href="@{/customer/equipment/1}"
+             class="rounded-xl bg-[#19381C] px-4 py-3 text-sm text-white font-semibold">
+            Detail
+          </a>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <div th:if="${!#lists.isEmpty(listKatalog)}"
+       class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+
+    <article th:each="peralatan : ${listKatalog}"
+             class="overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition">
+
+      <div class="h-52 bg-[#EAE5D8]">
+        <img th:src="@{/images/placeholders/equipment-placeholder.png}"
+             alt="Equipment"
+             class="w-full h-full object-cover">
+      </div>
+
+      <div class="p-5">
+        <div class="flex items-center justify-between">
+          <p class="text-xs font-bold text-[#E27252]"
+             th:text="${peralatan.kategori.namaKategori}">
+            TENT
+          </p>
+
+          <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                        Stock <span th:text="${peralatan.stok}">5</span>
+                    </span>
+        </div>
+
+        <h3 class="mt-3 text-xl font-bold text-[#19381C]"
+            th:text="${peralatan.namaAlat}">
+          Tent Dome Borneo 4
+        </h3>
+
+        <p class="text-sm text-gray-500 mt-1"
+           th:text="${peralatan.merek}">
+          Eiger
+        </p>
+
+        <p class="mt-3 text-sm">
+          By
+          <a th:href="@{/customer/store/1}"
+             class="font-semibold text-[#19381C] hover:text-[#E27252]"
+             th:text="${peralatan.store.namaToko}">
+            Mountain Adventure
+          </a>
+        </p>
+
+        <p class="mt-4 text-sm text-gray-500"
+           th:text="${peralatan.deskripsi}">
+          Comfortable tent for camping with friends or family.
+        </p>
+
+        <div class="mt-5 flex items-end justify-between">
+          <div>
+            <p class="text-xs text-gray-500">Rental Price</p>
+            <p class="text-xl font-bold text-[#E27252]">
+              Rp
+              <span th:text="${#numbers.formatDecimal(peralatan.hargaSewaPerHari, 0, 'COMMA', 0, 'POINT')}">
+                                80000
+                            </span>
+              <span class="text-sm text-gray-500 font-normal">/day</span>
+            </p>
+          </div>
+
+          <a th:href="@{/customer/equipment/{id}(id=${peralatan.id})}"
+             class="rounded-xl bg-[#19381C] px-4 py-3 text-sm text-white font-semibold">
+            Detail
+          </a>
+        </div>
+      </div>
+
+    </article>
+
+  </div>
+
+</section>
+
+<footer class="bg-[#112413] text-white pt-10 pb-6 px-8">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-4 text-sm">
+    <div>
+      <h3 class="font-bold text-lg text-[#E27252]">CampRent</h3>
+      <p class="opacity-75 text-xs mt-1">
+        Platform Solusi Sewa Alat Gunung Terintegrasi di Medan.
+      </p>
+    </div>
+
+    <p class="text-xs opacity-50">
+      © 2026 CampRent Project. All Rights Reserved.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

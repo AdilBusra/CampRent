@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Profile - CampRent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#F4F4F2] text-slate-800 font-sans antialiased">
+
+<div th:replace="~{fragments/customer-navbar :: customerNavbar('profile')}"></div>
+
+<main class="pt-24 min-h-screen">
+
+  <section class="max-w-7xl mx-auto px-8 pb-16">
+
+    <h1 class="text-3xl font-bold text-[#19381C]">
+      My Profile
+    </h1>
+
+    <p class="text-sm text-gray-500 mt-2">
+      Manage your customer account information.
+    </p>
+
+    <section class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+      <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 h-fit text-center">
+
+        <div class="mx-auto w-24 h-24 rounded-full bg-[#E27252] flex items-center justify-center text-4xl font-bold text-white">
+          A
+        </div>
+
+        <h2 class="mt-4 text-xl font-bold text-[#19381C]">
+          Amelia Putri
+        </h2>
+
+        <p class="text-sm text-gray-500 mt-1">
+          Customer
+        </p>
+
+        <button type="button"
+                onclick="openCustomerProfileModal()"
+                class="mt-5 rounded-xl bg-[#E27252] px-5 py-3 text-white font-semibold hover:bg-[#c85f41]">
+          Edit Profile
+        </button>
+
+      </div>
+
+      <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+
+        <h2 class="text-2xl font-bold text-[#19381C]">
+          Profile Information
+        </h2>
+
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+          <div>
+            <p class="text-sm text-gray-500">Full Name</p>
+            <p class="font-bold text-[#19381C] mt-1">Amelia Putri</p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500">Username</p>
+            <p class="font-bold text-[#19381C] mt-1">amelia</p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500">Email</p>
+            <p class="font-bold text-[#19381C] mt-1">amelia@email.com</p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500">Phone Number</p>
+            <p class="font-bold text-[#19381C] mt-1">0812-3456-7890</p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500">NIK</p>
+            <p class="font-bold text-[#19381C] mt-1">1200000000000000</p>
+          </div>
+
+          <div>
+            <p class="text-sm text-gray-500">Account Status</p>
+            <span class="inline-block mt-1 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-green-700">
+                            Active
+                        </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
+
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <p class="text-sm text-gray-500">Total Booking</p>
+        <h3 class="text-3xl font-bold text-[#19381C] mt-2">8</h3>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <p class="text-sm text-gray-500">Active Rental</p>
+        <h3 class="text-3xl font-bold text-[#19381C] mt-2">1</h3>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+        <p class="text-sm text-gray-500">Completed Rental</p>
+        <h3 class="text-3xl font-bold text-[#19381C] mt-2">6</h3>
+      </div>
+
+    </section>
+
+  </section>
+
+</main>
+
+<div id="customerProfileModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+
+  <div class="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
+
+    <div class="flex items-center justify-between bg-[#19381C] px-6 py-5 text-white">
+      <div>
+        <h2 class="text-2xl font-bold">Edit Profile</h2>
+        <p class="text-sm text-white/70">Update your customer account information.</p>
+      </div>
+
+      <button type="button"
+              onclick="closeCustomerProfileModal()"
+              class="text-3xl leading-none hover:text-[#E27252]">
+        ×
+      </button>
+    </div>
+
+    <form class="p-6 space-y-5">
+
+      <div class="flex items-center gap-4">
+
+        <div class="w-20 h-20 rounded-full bg-[#E27252] flex items-center justify-center text-3xl font-bold text-white">
+          A
+        </div>
+
+        <label class="cursor-pointer rounded-xl border border-gray-200 px-4 py-3 font-semibold hover:bg-[#F4F4F2]">
+          Change Photo
+          <input type="file"
+                 accept="image/*"
+                 class="hidden">
+        </label>
+
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+        <div>
+          <label class="block text-sm font-semibold mb-2">
+            Full Name
+          </label>
+
+          <input type="text"
+                 value="Amelia Putri"
+                 class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E27252]">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold mb-2">
+            Username
+          </label>
+
+          <input type="text"
+                 value="amelia"
+                 class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E27252]">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold mb-2">
+            Email
+          </label>
+
+          <input type="email"
+                 value="amelia@email.com"
+                 class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E27252]">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold mb-2">
+            Phone Number
+          </label>
+
+          <input type="text"
+                 value="0812-3456-7890"
+                 class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E27252]">
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold mb-2">
+            NIK
+          </label>
+
+          <input type="text"
+                 value="1200000000000000"
+                 class="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E27252]">
+        </div>
+
+      </div>
+
+      <div class="flex justify-end gap-3 pt-3">
+
+        <button type="button"
+                onclick="closeCustomerProfileModal()"
+                class="rounded-xl border border-gray-200 px-5 py-3 font-semibold hover:bg-[#F4F4F2]">
+          Cancel
+        </button>
+
+        <button type="button"
+                class="rounded-xl bg-[#E27252] px-5 py-3 text-white font-semibold hover:bg-[#c85f41]">
+          Save Changes
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>
+
+<script>
+  function openCustomerProfileModal() {
+      const modal = document.getElementById("customerProfileModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+  }
+
+  function closeCustomerProfileModal() {
+      const modal = document.getElementById("customerProfileModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+  }
+</script>
+
+</body>
+</html>

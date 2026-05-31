@@ -1,0 +1,38 @@
+<nav th:fragment="customerNavbar(activePage)"
+     class="w-full bg-[#19381C] fixed top-0 left-0 z-40 text-white py-4 px-8 flex justify-between items-center shadow-md">
+
+  <a th:href="@{/customer/dashboard}" class="flex items-center gap-2">
+    <img th:src="@{/images/logo-camprent.png}"
+          alt="CampRent Logo"
+          class="h-10">
+    <span class="font-bold text-xl tracking-wide">CampRent</span>
+  </a>
+
+  <div class="hidden md:flex gap-8 text-sm font-medium">
+    <a th:href="@{/customer/dashboard}"
+       th:classappend="${activePage == 'home'} ? ' text-[#E27252]' : ''"
+       class="hover:text-[#E27252] transition">Home</a>
+
+    <a th:href="@{/customer/katalog}"
+       th:classappend="${activePage == 'catalog'} ? ' text-[#E27252]' : ''"
+       class="hover:text-[#E27252] transition">Catalog</a>
+
+    <a th:href="@{/customer/categories}"
+       th:classappend="${activePage == 'categories'} ? ' text-[#E27252]' : ''"
+       class="hover:text-[#E27252] transition">Categories</a>
+
+    <a th:href="@{/customer/my-booking}"
+       th:classappend="${activePage == 'booking'} ? ' text-[#E27252]' : ''"
+       class="hover:text-[#E27252] transition">My Booking</a>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <a th:href="@{/customer/cart}" class="text-xl hover:text-[#E27252] transition">🛒</a>
+
+    <a th:href="@{/customer/profile}"
+       class="w-9 h-9 rounded-full bg-[#E27252] flex items-center justify-center font-bold">
+      👤
+    </a>
+  </div>
+
+</nav>
