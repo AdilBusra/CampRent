@@ -7,6 +7,9 @@ import com.camprent.medan.repository.UserRepository;
 import com.camprent.medan.repository.CustomerRepository;
 import com.camprent.medan.repository.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 
 @Service
-public class AuthService {
+public class AuthService implements UserDetailsService { // Tambahkan implements agar dikenali Spring Security
 
     @Autowired
     private UserRepository userRepository;
@@ -28,6 +31,31 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * FUNGSI LOGIN: Otomatis dipanggil oleh Spring Security saat user menekan tombol login
+     */
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // 1. Cari user di database berdasarkan username
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan dengan username: " + username));
+
+        // 2. Validasi apakah akun dalam status aktif
+        if (user.getIsActive() != null && !user.getIsActive()) {
+            throw new RuntimeException("Akun Anda telah dinonaktifkan!");
+        }
+
+        // 3. Kembalikan objek UserDetails bawaan Spring Security dengan role-nya
+        return org.springframework.security.core.userdetails.User
+                .withUsername(user.getUsername())
+                .password(user.getPassword())
+                .roles(user.getRole()) // Spring Security otomatis membaca role seperti CUSTOMER / STORE
+                .build();
+    }
+
+    /**
+     * FUNGSI REGISTER: Menyimpan data akun baru ke database H2
+     */
     @Transactional
     public void registerNewUser(Map<String, String> formData) {
         String username = formData.get("username");
