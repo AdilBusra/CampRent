@@ -14,8 +14,6 @@
 
 <main class="min-h-screen lg:ml-64 p-6">
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
-
     <section class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div th:if="${successMessage}"
              class="mb-6 rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-700">
@@ -33,7 +31,7 @@
             </p>
         </div>
 
-        <a th:href="@{/store/equipment/add}"
+        <a th:href="@{/store/peralatan/add}"
            class="inline-flex items-center justify-center rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
             + Add Equipment
         </a>
@@ -99,7 +97,7 @@
                                 Start adding your camping equipment to make it available for rent on CampRent.
                             </p>
 
-                            <a th:href="@{/store/equipment/add}"
+                            <a th:href="@{/store/peralatan/add}"
                                class="mt-6 rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
                                 + Add First Equipment
                             </a>
@@ -165,6 +163,8 @@
             </table>
         </div>
     </section>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
 
 </main>
 

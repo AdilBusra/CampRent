@@ -20,9 +20,28 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/", "/register", "/login", "/css/**", "/js/**", "/images/**").permitAll()
-                        .anyRequest().permitAll()
+                        // 1. Izinkan akses ke H2 Console, halaman login, register, dan aset statis tanpa login
+                        .requestMatchers("/h2-console/**", "/login", "/register", "/registrasi/**", "/css/**", "/js/**", "/images/**").permitAll()
+
+                        // 2. Batasi rute dashboard hanya untuk pengguna yang sudah login sesuai role-nya
+                        .requestMatchers("/store/**").hasAnyAuthority("STORE")
+                        .requestMatchers("/admin/**").hasAnyAuthority("ADMIN")
+                        .requestMatchers("/customer/**").hasAuthority("CUSTOMER")
+
+                        // 3. Sisa request lainnya (seperti landing page customer) wajib login dulu
+                        .anyRequest().authenticated()
+                )
+                // 4. Konfigurasi Form Login agar mengarah ke Cara B (/success-login)
+                .formLogin(form -> form
+                        .loginPage("/login") // Menunjuk ke view template login kalian
+                        .defaultSuccessUrl("/success-login", true) // Lempar ke AuthController perantara
+                        .permitAll()
+                )
+                // 5. Fitur Logout
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .permitAll()
                 )
                 .formLogin(form -> form
                         .loginPage("/")

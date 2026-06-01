@@ -11,62 +11,11 @@ import java.util.List;
 @Repository
 public interface
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 PeralatanRepository extends JpaRepository<Peralatan, Long> {
 
     // === FITUR UNTUK SISI STORE (Bawaan Kawanmu - JANGAN DIHAPUS) ===
     List<Peralatan> findByStore(Store store);
+    List<Peralatan> findByStoreId(Long storeId);
     List<Peralatan> findByNamaAlatContainingIgnoreCase(String keyword);
     long countByStore(Store store); // Ini yang kita tambahkan kemarin untuk hitung total alat
 
