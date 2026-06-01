@@ -4,7 +4,7 @@ import com.camprent.medan.entity.User;
 import com.camprent.medan.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder; // TAMBAHKAN IMPORT INI
+import org.springframework.security.crypto.password.PasswordEncoder; // 1. Tambahkan import ini
 import org.springframework.stereotype.Component;
 
 @Component
@@ -13,9 +13,8 @@ public class AdminSeeder implements CommandLineRunner {
     @Autowired
     private UserRepository userRepository;
 
-    // 1. SUNTIKKAN PASSWORD ENCODER DI SINI
     @Autowired
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder; // 2. Suntikkan PasswordEncoder di sini
 
     @Override
     public void run(String... args) throws Exception {
@@ -40,7 +39,7 @@ public class AdminSeeder implements CommandLineRunner {
         User admin = new User();
         admin.setUsername(username);
 
-        // 2. BUNGKUS PASSWORD DENGAN BCRYPT ENCODER DI SINI
+        // 3. KUNCI PERBAIKAN: Password mentah dibungkus dengan passwordEncoder.encode()
         admin.setPassword(passwordEncoder.encode(password));
 
         admin.setEmail(email);
