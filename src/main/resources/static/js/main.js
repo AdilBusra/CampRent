@@ -36,10 +36,39 @@ function closeEditProfileModal() {
 
 function openOfflineRentalModal() {
     const modal = document.getElementById("offlineRentalModal");
+    const selectElement = document.getElementById("modalPeralatanSelect");
+
     if (!modal) return;
 
+    // 1. Isi dropdown secara dinamis dari data global Thymeleaf jika elemen select-nya ada
+    if (selectElement) {
+        // Kembalikan ke opsi default awal
+        selectElement.innerHTML = '<option value="" disabled selected>-- Pilih Alat Camping --</option>';
+
+        // Ambil data dari window.dataPeralatanToko yang kita siapkan di HTML tadi
+        const listAlat = window.dataPeralatanToko || [];
+
+        // Looping untuk memasukkan option secara dinamis beserta data-attribute-nya
+        listAlat.forEach(alat => {
+            const opt = document.createElement("option");
+            opt.value = alat.id;
+            opt.text = `${alat.namaAlat} (Stock: ${alat.stok})`;
+
+            // Set atribut data-* agar logika updateRentalSummary() tidak rusak
+            opt.setAttribute("data-price", alat.hargaSewaPerHari);
+            opt.setAttribute("data-name", alat.namaAlat);
+            opt.setAttribute("data-stock", alat.stok);
+
+            selectElement.appendChild(opt);
+        });
+    }
+
+    // 2. Tampilkan modal popup
     modal.classList.remove("hidden");
     modal.classList.add("flex");
+
+    // Reset ulang hitungan summary ke Rp0
+    updateRentalSummary();
 }
 
 function closeOfflineRentalModal() {
@@ -48,13 +77,6 @@ function closeOfflineRentalModal() {
 
     modal.classList.add("hidden");
     modal.classList.remove("flex");
-}
-
-function openOfflineRentalModal() {
-    const modal = document.getElementById("offlineRentalModal");
-
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
 }
 
 function closeOfflineRentalModal() {
@@ -79,63 +101,35 @@ function closeOfflineDetailModal() {
 }
 
 function addRentalItem() {
+    const container = document.getElementById("rentalItemsContainer");
 
-    const container =
-        document.getElementById("rentalItemsContainer");
+    // Ambil referensi dari select pertama sebagai template
+    const firstSelect = document.querySelector(".equipment-select");
 
     const item = document.createElement("div");
+    item.className = "rental-item grid grid-cols-12 gap-3 mt-3"; // Tambah mt-3 biar rapi
 
-    item.className =
-        "rental-item grid grid-cols-12 gap-3";
-
+    // Kita buat select-nya sama persis dengan yang pertama
     item.innerHTML = `
-
         <div class="col-span-8">
-
-            <select
-                class="equipment-select w-full rounded-xl border px-4 py-3">
-
-                <option value="80000">Tent Dome Borneo 4 (Stock: 5)</option>
-                <option value="70000">Carrier Eiger 60L (Stock: 3)</option>
-                <option value="30000">Sleeping Bag (Stock: 10)</option>
-                <option value="50000">Portable Stove (Stock: 8)</option>
-
+            <select name="peralatanIds" class="equipment-select w-full rounded-xl border px-4 py-3" onchange="updateRentalSummary()">
+                ${firstSelect.innerHTML}
             </select>
-
         </div>
-
         <div class="col-span-3">
-
-            <input
-                type="number"
-                min="1"
-                value="1"
-                class="quantity-input w-full rounded-xl border px-4 py-3">
-
+            <input type="number" name="kuantitas" min="1" value="1" oninput="updateRentalSummary()" class="quantity-input w-full rounded-xl border px-4 py-3">
         </div>
-
         <div class="col-span-1">
-
-            <button
-                type="button"
-                onclick="removeRentalItem(this)"
-                class="h-12 w-full rounded-xl border border-red-200 text-red-500 hover:bg-red-50">
-                ×
-            </button>
-
+            <button type="button" onclick="removeRentalItem(this)" class="h-12 w-full rounded-xl border border-red-200 text-red-500 hover:bg-red-50">×</button>
         </div>
     `;
 
     container.appendChild(item);
-
-    attachListeners();
     updateRentalSummary();
 }
 
-function removeRentalItem(button) {
-
-    button.closest(".rental-item").remove();
-
+function removeRentalItem(btn) {
+    btn.closest('.rental-item').remove();
     updateRentalSummary();
 }
 
@@ -178,30 +172,45 @@ function updateRentalSummary() {
         const equipment = item.querySelector(".equipment-select");
         const quantityInput = item.querySelector(".quantity-input");
 
-        const qty = parseInt(quantityInput.value) || 0;
-        const price = parseInt(equipment.value) || 0;
-        const subtotal = price * qty * duration;
+        // VALIDASI YANG LEBIH AMAN:
+        if (!equipment || equipment.selectedIndex === -1 || equipment.value === "") return;
 
+        const selectedOption = equipment.options[equipment.selectedIndex];
+        if (!selectedOption) return; // Mencegah crash jika option kosong
+
+        const maxStock = parseInt(selectedOption.getAttribute("data-stock")) || 0;
+        const price = parseInt(selectedOption.getAttribute("data-price")) || 0;
+        const name = selectedOption.getAttribute("data-name") || "Item";
+
+        // 2. Ambil nilai qty DULU
+        let qty = parseInt(quantityInput.value) || 0;
+
+        // 3. Baru validasi stoknya
+        if (qty > maxStock) {
+            qty = maxStock;
+            quantityInput.value = maxStock;
+            alert("Stok hanya tersisa " + maxStock + "!");
+        }
+
+        // 4. Hitung subtotal dan total
+        const subtotal = price * qty * duration;
         dailyTotal += subtotal;
         itemCount += qty;
 
-        const row = document.createElement("div");
-        row.className = "flex justify-between gap-4";
-
-        row.innerHTML = `
-            <span>
-                ${equipment.options[equipment.selectedIndex].text} × ${qty}
-                <span class="text-gray-500">(${duration} day)</span>
-            </span>
-
-            <span>
-                Rp${subtotal.toLocaleString("id-ID")}
-            </span>
-        `;
-
-        summary.appendChild(row);
+        // 5. Tampilkan ke summary
+        if (qty > 0) {
+            const row = document.createElement("div");
+            row.className = "flex justify-between gap-4";
+            row.innerHTML = `
+                <span>
+                    ${name} × ${qty}
+                    <span class="text-gray-500">(${duration} day)</span>
+                </span>
+                <span>Rp${subtotal.toLocaleString("id-ID")}</span>
+            `;
+            summary.appendChild(row);
+        }
     });
-
     const itemCountText = document.getElementById("itemCountText");
 
     if (itemCountText) {

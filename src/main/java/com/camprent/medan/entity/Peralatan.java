@@ -44,4 +44,7 @@ public class Peralatan {
 
     @Column(columnDefinition = "TEXT")
     private String deskripsi;
+
+    @Column(name = "foto_peralatan")
+    private String fotoPeralatan; // Menyimpan nama file, misal: "tenda-dome-4p.jpg"
 }

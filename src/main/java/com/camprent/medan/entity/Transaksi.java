@@ -21,7 +21,7 @@ public class Transaksi {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "customer_id", nullable = false)
+    @JoinColumn(name = "customer_id", nullable = true)
     private Customer customer;
 
     @ManyToOne
@@ -39,4 +39,14 @@ public class Transaksi {
 
     @Column(name = "status_transaksi", nullable = false)
     private String statusTransaksi = "PENDING"; // PENDING, DIPAKAI, SELESAI, TERLAMBAT
+
+    // Tambahkan kolom untuk Offline
+    @Column(name = "nama_customer")
+    private String namaCustomer;
+
+    @Column(name = "no_hp_customer")
+    private String noHpCustomer;
+
+    @Column(name = "source")
+    private String source; // "ONLINE" atau "OFFLINE"
 }

@@ -16,6 +16,9 @@ public class RegistrasiService {
     private UserRepository userRepository;
 
     @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    @Autowired
     private StoreRepository storeRepository;
 
     @Autowired
@@ -27,7 +30,7 @@ public class RegistrasiService {
         // Buat akun User dulu
         User user = new User();
         user.setUsername(username);
-        user.setPassword(password);
+        user.setPassword(passwordEncoder.encode(password));
         user.setEmail(email);
         user.setRole("STORE");
         user.setIsActive(false); // Belum aktif, tunggu verifikasi Admin

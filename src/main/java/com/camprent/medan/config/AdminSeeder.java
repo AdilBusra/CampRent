@@ -4,6 +4,7 @@ import com.camprent.medan.entity.User;
 import com.camprent.medan.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder; // TAMBAHKAN IMPORT INI
 import org.springframework.stereotype.Component;
 
 @Component
@@ -12,16 +13,18 @@ public class AdminSeeder implements CommandLineRunner {
     @Autowired
     private UserRepository userRepository;
 
+    // 1. SUNTIKKAN PASSWORD ENCODER DI SINI
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public void run(String... args) throws Exception {
-        // 1. Cek berapa jumlah user dengan role "ADMIN" saat ini di database
         long adminCount = userRepository.countByRole("ADMIN");
 
-        // 2. Jika jumlah admin masih kurang dari 4, kita suntikkan data admin default
         if (adminCount == 0) {
             System.out.println("=== [SEEDER] Membuat 4 Akun Admin Default CampRent ===");
 
-            // Kamu bisa sesuaikan username, password, dan email default di bawah ini
+            // Ganti password "admin123" dengan sesuatu yang lebih aman jika ingin pop-up Chrome hilang
             createDefaultAdmin("admin1", "admin123", "admin1@camprent.com");
             createDefaultAdmin("admin2", "admin123", "admin2@camprent.com");
             createDefaultAdmin("admin3", "admin123", "admin3@camprent.com");
@@ -37,12 +40,11 @@ public class AdminSeeder implements CommandLineRunner {
         User admin = new User();
         admin.setUsername(username);
 
-        // Catatan: Sementara password di-set plain text dulu.
-        // Nanti kalau kamu sudah pasang Spring Security, ini tinggal kita bungkus pakai passwordEncoder.encode(password)
-        admin.setPassword(password);
+        // 2. BUNGKUS PASSWORD DENGAN BCRYPT ENCODER DI SINI
+        admin.setPassword(passwordEncoder.encode(password));
 
         admin.setEmail(email);
-        admin.setRole("ADMIN"); // Sesuai aturan entity: "ADMIN"
+        admin.setRole("ADMIN");
         admin.setIsActive(true);
 
         userRepository.save(admin);
