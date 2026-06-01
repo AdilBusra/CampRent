@@ -14,7 +14,7 @@
 <main class="min-h-screen lg:ml-64 p-6">
 
     <section class="mb-8">
-        <a th:href="@{/store/peralatan}"
+        <a th:href="@{/store/equipment}"
            class="text-sm font-semibold text-[#F28C73] hover:underline">
             ← Back to Equipment List
         </a>
@@ -146,7 +146,7 @@
                         Save Equipment
                     </button>
 
-                    <a th:href="@{/store/peralatan}"
+                    <a th:href="@{/store/equipment}"
                        class="rounded-xl border border-[#12372A]/20 px-6 py-3 text-center font-semibold hover:bg-[#F8F5EC] transition">
                         Cancel
                     </a>
@@ -206,9 +206,9 @@
 
                     <p class="mt-2 text-sm text-[#12372A]/70">
                         By
-                        <span class="font-semibold text-[#12372A]">
-                        Mountain Adventure
-                    </span>
+                        <span class="font-semibold text-[#12372A]" th:text="${store.namaToko}">
+                            Nama Toko Anda
+                        </span>
                     </p>
 
                     <p id="previewDescription"

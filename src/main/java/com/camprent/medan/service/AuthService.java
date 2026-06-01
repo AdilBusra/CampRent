@@ -17,7 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 
 @Service
-public class AuthService implements UserDetailsService { // Tambahkan implements agar dikenali Spring Security
+// TAMBAHKAN 'implements UserDetailsService' di sini
+public class AuthService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
@@ -31,54 +32,42 @@ public class AuthService implements UserDetailsService { // Tambahkan implements
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    /**
-     * FUNGSI LOGIN: Otomatis dipanggil oleh Spring Security saat user menekan tombol login
-     */
+    // --- METHOD UNTUK PROSES LOGIN (WAJIB ADA) ---
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // 1. Cari user di database berdasarkan username
+        // Ambil data user dari database berdasarkan username inputan form login
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan dengan username: " + username));
 
-        // 2. Validasi apakah akun dalam status aktif
-        if (user.getIsActive() != null && !user.getIsActive()) {
-            throw new RuntimeException("Akun Anda telah dinonaktifkan!");
-        }
-
-        // 3. Kembalikan objek UserDetails bawaan Spring Security dengan role-nya
+        // Bungkus data Entity User kita ke dalam object UserDetails milik Spring Security
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
                 .password(user.getPassword())
-                .roles(user.getRole()) // Spring Security otomatis membaca role seperti CUSTOMER / STORE
+                .authorities(user.getRole()) // Ini yang melempar role ADMIN, STORE, atau CUSTOMER
+                .disabled(!user.getIsActive()) // Menahan akun jika belum di-approve admin
                 .build();
     }
 
-    /**
-     * FUNGSI REGISTER: Menyimpan data akun baru ke database H2
-     */
+    // --- METHOD REGISTRASI (Kode lamamu di bawah ini jangan diubah) ---
     @Transactional
     public void registerNewUser(Map<String, String> formData) {
         String username = formData.get("username");
 
-        // 1. Validasi jika username sudah dipakai
         if (userRepository.findByUsername(username).isPresent()) {
             throw new RuntimeException("Username '" + username + "' sudah terdaftar!");
         }
 
-        // 2. Simpan ke Akun Utama (User.java)
         User user = new User();
         user.setUsername(username);
         user.setEmail(formData.get("email"));
-        // Enkripsi password bawaan Spring Security agar aman di database
         user.setPassword(passwordEncoder.encode(formData.get("password")));
 
         String role = formData.get("role");
-        user.setRole(role); // "CUSTOMER" atau "STORE"
+        user.setRole(role);
         user.setIsActive(true);
 
         User savedUser = userRepository.save(user);
 
-        // 3. Percabangan Logika Profil sesuai Role pilihan di Form Dinamis
         if ("CUSTOMER".equals(role)) {
             Customer customer = new Customer();
             customer.setUser(savedUser);
@@ -92,7 +81,7 @@ public class AuthService implements UserDetailsService { // Tambahkan implements
             store.setNamaToko(formData.get("namaToko"));
             store.setNomorTelepon(formData.get("nomorTeleponStore"));
             store.setAlamat(formData.get("alamat"));
-            store.setStatusVerifikasi("PENDING"); // Toko baru otomatis PENDING butuh verifikasi Admin
+            store.setStatusVerifikasi("PENDING");
             storeRepository.save(store);
         }
     }
