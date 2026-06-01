@@ -1,6 +1,7 @@
 package com.camprent.medan.controller;
 
 import com.camprent.medan.service.RegistrasiService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,11 +41,18 @@ public class RegistrasiController {
             @RequestParam String namaToko,
             @RequestParam String alamat,
             @RequestParam String nomorTelepon,
+            HttpServletRequest request,
             Model model) {
         try {
+            // 1. Simpan ke Database
             registrasiService.daftarStore(username, password, email,
                     namaToko, alamat, nomorTelepon);
-            return "redirect:/login?registrasiSucces";
+
+            // 2. Langsung jalankan login otomatis
+            request.login(username, password);
+
+            // 3. Masuk ke dashboard toko (status verifikasi pending tetap bisa diakses)
+            return "redirect:/store/dashboard";
         } catch (Exception e) {
             model.addAttribute("error", "Registrasi gagal: " + e.getMessage());
             return "registrasi/form-store";
@@ -60,11 +68,18 @@ public class RegistrasiController {
             @RequestParam String namaLengkap,
             @RequestParam String nomorTelepon,
             @RequestParam String nik,
+            HttpServletRequest request,
             Model model) {
         try {
+            // 1. Simpan ke Database
             registrasiService.daftarCustomer(username, password, email,
                     namaLengkap, nomorTelepon, nik);
-            return "redirect:/login?registrasiSucces";
+
+            // 2. Langsung jalankan login otomatis
+            request.login(username, password);
+
+            // 3. Bawa ke dashboard customer
+            return "redirect:/customer/dashboard";
         } catch (Exception e) {
             model.addAttribute("error", "Registrasi gagal: " + e.getMessage());
             return "registrasi/form-customer";
