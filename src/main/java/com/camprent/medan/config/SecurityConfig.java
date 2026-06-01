@@ -31,10 +31,12 @@ public class SecurityConfig {
                         // 3. Sisa request lainnya (seperti landing page customer) wajib login dulu
                         .anyRequest().authenticated()
                 )
-                // 4. Konfigurasi Form Login agar mengarah ke Cara B (/success-login)
+                // 4. PERBAIKAN: Gunakan hanya SATU formLogin configuration
                 .formLogin(form -> form
-                        .loginPage("/login") // Menunjuk ke view template login kalian
-                        .defaultSuccessUrl("/success-login", true) // Lempar ke AuthController perantara
+                        .loginPage("/login")                          // Form login di halaman /login
+                        .loginProcessingUrl("/login")                 // Spring Security process login dari URL ini
+                        .defaultSuccessUrl("/success-login", true)    // Redirect ke AuthController untuk routing
+                        .failureUrl("/login?error=true")              // Jika gagal, kembali ke /login?error=true
                         .permitAll()
                 )
                 // 5. Fitur Logout
@@ -43,25 +45,11 @@ public class SecurityConfig {
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
                 )
-                .formLogin(form -> form
-                        .loginPage("/")
-                        .loginProcessingUrl("/login")
-                        .defaultSuccessUrl("/", true)
-                        .failureUrl("/?error=true")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/?logout=true")
-                        .permitAll()
-                )
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .httpBasic(Customizer.withDefaults())
-                .userDetailsService(authService);
+                .userDetailsService(authService);  // Gunakan AuthService untuk load user details
 
         return http.build();
     }
-
-    // Metode passwordEncoder() SUDAH DIHAPUS dari sini untuk memutus siklus eror
 }

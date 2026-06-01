@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 
 @Service
-// TAMBAHKAN 'implements UserDetailsService' di sini
 public class AuthService implements UserDetailsService {
 
     @Autowired
@@ -32,23 +31,34 @@ public class AuthService implements UserDetailsService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // --- METHOD UNTUK PROSES LOGIN (WAJIB ADA) ---
+    /**
+     * ✅ METHOD UNTUK LOGIN (WAJIB ADA UNTUK UserDetailsService)
+     *
+     * Spring Security akan memanggil method ini otomatis saat user submit form login.
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         // Ambil data user dari database berdasarkan username inputan form login
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User tidak ditemukan dengan username: " + username));
 
-        // Bungkus data Entity User kita ke dalam object UserDetails milik Spring Security
+        // Cek apakah akun aktif (Toko & Customer sekarang default true setelah registrasi)
+        boolean isActive = user.getIsActive() != null && user.getIsActive();
+
+        // Bungkus data Entity User ke dalam object UserDetails milik Spring Security
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getUsername())
-                .password(user.getPassword())
-                .authorities(user.getRole()) // Ini yang melempar role ADMIN, STORE, atau CUSTOMER
-                .disabled(!user.getIsActive()) // Menahan akun jika belum di-approve admin
+                .password(user.getPassword())  // Ini password yang sudah di-encode di DB
+                .authorities(user.getRole())    // Ini role ADMIN, STORE, atau CUSTOMER
+                .disabled(!isActive)             // Disable akun jika isActive = false
                 .build();
     }
 
-    // --- METHOD REGISTRASI (Kode lamamu di bawah ini jangan diubah) ---
+    /**
+     * ✅ METHOD UNTUK REGISTRASI BARU (Digunakan oleh AuthController)
+     *
+     * Digunakan untuk registrasi via form modal / halaman register
+     */
     @Transactional
     public void registerNewUser(Map<String, String> formData) {
         String username = formData.get("username");
@@ -60,11 +70,11 @@ public class AuthService implements UserDetailsService {
         User user = new User();
         user.setUsername(username);
         user.setEmail(formData.get("email"));
-        user.setPassword(passwordEncoder.encode(formData.get("password")));
+        user.setPassword(passwordEncoder.encode(formData.get("password")));  // ✅ ENCODE!
 
         String role = formData.get("role");
         user.setRole(role);
-        user.setIsActive(true);
+        user.setIsActive(true); // ✅ Dipastikan true untuk semua role agar bisa langsung masuk dashboard
 
         User savedUser = userRepository.save(user);
 
@@ -81,7 +91,7 @@ public class AuthService implements UserDetailsService {
             store.setNamaToko(formData.get("namaToko"));
             store.setNomorTelepon(formData.get("nomorTeleponStore"));
             store.setAlamat(formData.get("alamat"));
-            store.setStatusVerifikasi("PENDING");
+            store.setStatusVerifikasi("PENDING"); // ✅ Filter visibilitas alat bersandar pada status ini
             storeRepository.save(store);
         }
     }

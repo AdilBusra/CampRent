@@ -7,6 +7,7 @@ import com.camprent.medan.repository.CustomerRepository;
 import com.camprent.medan.repository.StoreRepository;
 import com.camprent.medan.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,7 +17,7 @@ public class RegistrasiService {
     private UserRepository userRepository;
 
     @Autowired
-    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private StoreRepository storeRepository;
@@ -30,10 +31,10 @@ public class RegistrasiService {
         // Buat akun User dulu
         User user = new User();
         user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
+        user.setPassword(passwordEncoder.encode(password));  // ✅ ENCODE PASSWORD
         user.setEmail(email);
         user.setRole("STORE");
-        user.setIsActive(false); // Belum aktif, tunggu verifikasi Admin
+        user.setIsActive(true); // ✅ REVISI: Set true agar bisa langsung auto-login tanpa diblokir Spring Security
         userRepository.save(user);
 
         // Otomatis buat profil Store
@@ -42,7 +43,7 @@ public class RegistrasiService {
         store.setNamaToko(namaToko);
         store.setAlamat(alamat);
         store.setNomorTelepon(nomorTelepon);
-        store.setStatusVerifikasi("PENDING");
+        store.setStatusVerifikasi("PENDING"); // ✅ Status peninjauan tetap PENDING untuk filter barang
         storeRepository.save(store);
     }
 
@@ -52,7 +53,7 @@ public class RegistrasiService {
         // Buat akun User dulu
         User user = new User();
         user.setUsername(username);
-        user.setPassword(password);
+        user.setPassword(passwordEncoder.encode(password));  // ✅ PERBAIKAN: ENCODE PASSWORD!
         user.setEmail(email);
         user.setRole("CUSTOMER");
         user.setIsActive(true); // Langsung aktif tanpa verifikasi

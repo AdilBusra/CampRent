@@ -1,6 +1,7 @@
 package com.camprent.medan.controller;
 
 import com.camprent.medan.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,14 +22,29 @@ public class AuthController {
      * Menerima kiriman data dari Form Registrasi Dinamis Modal HTML
      */
     @PostMapping("/register")
-    public String prosesRegistrasi(@RequestParam Map<String, String> formData, RedirectAttributes redirectAttributes) {
+    public String prosesRegistrasi(@RequestParam Map<String, String> formData,
+                                   HttpServletRequest request,
+                                   RedirectAttributes redirectAttributes) {
         try {
-            // Jalankan logika bisnis pendaftaran
+            // 1. Jalankan logika bisnis pendaftaran ke database
             authService.registerNewUser(formData);
 
-            // Jika sukses, kirim notifikasi ke halaman login
-            redirectAttributes.addFlashAttribute("successMessage", "Registrasi berhasil! Silakan masuk ke akun Anda.");
-            return "redirect:/login?success";
+            // 2. Ambil parameter mentah untuk proses otentikasi otomatis
+            String username = formData.get("username");
+            String password = formData.get("password");
+            String role = formData.get("role");
+
+            // 3. Eksekusi Auto-Login secara programmatik
+            request.login(username, password);
+
+            // 4. Pengalihan langsung (Redirect) tanpa meminta login ulang
+            if ("ADMIN".equals(role)) {
+                return "redirect:/admin/dashboard";
+            } else if ("STORE".equals(role)) {
+                return "redirect:/store/dashboard";
+            } else {
+                return "redirect:/customer/dashboard";
+            }
 
         } catch (Exception e) {
             // Jika gagal (misal username kembar), tangkap erornya dan balikkan ke halaman utama dengan pesan gagal
@@ -36,6 +52,7 @@ public class AuthController {
             return "redirect:/login?error_register";
         }
     }
+
     @GetMapping("/success-login")
     public String redirectAfterLogin(Authentication auth) {
         if (auth == null || !auth.isAuthenticated()) {
@@ -51,7 +68,7 @@ public class AuthController {
         if (isAdmin) {
             return "redirect:/admin/dashboard"; // Arahkan ke dashboard admin
         } else if (isStore) {
-            return "redirect:/store/dashboard"; // Arahkan ke dashboard tokomu yang tadi eror
+            return "redirect:/store/dashboard"; // Arahkan ke dashboard tokomu
         } else {
             return "redirect:/customer/dashboard"; // Arahkan ke landing page customer/fitur utama
         }
