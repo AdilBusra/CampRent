@@ -52,8 +52,8 @@
                 <option value="">All Categories</option>
                 <option th:each="kategori : ${listKategori}"
                         th:value="${kategori.id}"
-                        th:text="${kategori.namaKategori}">
-                    Tent
+                        th:text="${kategori.namaKategori}"
+                        th:selected="${kategori.id == categoryId}"> Tent
                 </option>
             </select>
 

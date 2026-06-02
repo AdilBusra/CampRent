@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -33,16 +34,24 @@ public class PeralatanController {
                 .orElseThrow(() -> new RuntimeException("Data Toko tidak ditemukan!"));
     }
 
-    // 1. Menampilkan List Peralatan (URL: /store/equipment)
+    // 1. Menampilkan List Peralatan dengan Fitur Filter & Search (URL: /store/equipment)
     @GetMapping("/equipment")
-    public String listPeralatan(Authentication auth, Model model) {
+    public String listPeralatan(Authentication auth,
+                                @RequestParam(value = "keyword", required = false) String keyword,
+                                @RequestParam(value = "categoryId", required = false) Long categoryId,
+                                Model model) {
         Store store = getLoggedInStore(auth);
 
+        // Menggunakan method filter yang baru dibuat di Service
+        List<Peralatan> filteredPeralatan = peralatanService.getPeralatanFiltered(store, keyword, categoryId);
+
         model.addAttribute("store", store);
-        // SINKRONISASI: Menggunakan nama 'listPeralatan' sesuai yang diminta di HTML
-        model.addAttribute("listPeralatan", peralatanService.getPeralatanByStore(store));
-        // SINKRONISASI: Tambahkan listKategori agar dropdown pencarian di atas tabel tidak error
+        model.addAttribute("listPeralatan", filteredPeralatan);
         model.addAttribute("listKategori", kategoriRepository.findAll());
+
+        // Kirim balik parameternya ke HTML agar nilai di form input/dropdown tidak reset otomatis
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("categoryId", categoryId);
 
         return "store/equipment-list";
     }

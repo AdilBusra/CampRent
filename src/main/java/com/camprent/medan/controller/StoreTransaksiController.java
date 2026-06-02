@@ -32,25 +32,56 @@ public class StoreTransaksiController {
     @Autowired
     private StoreRepository storeRepository;
 
-    // Menampilkan semua orderan sewa yang masuk ke Toko tersebut
+    // ✅ PERBAIKAN UTAMA: Menampilkan list transaksi + list peralatan toko yang login
     @GetMapping
     public String listTransaksiStore(Model model, Authentication auth) {
-        // 1. Ambil username yang sedang login
+        System.out.println("🔍 === START DEBUG ===");
+
+        // 1. Check username
         String username = auth.getName();
+        System.out.println("1️⃣ Username: " + username);
 
-        // 2. Samakan cara pencarian toko dengan yang ada di PeralatanController
-        // Jika di PeralatanController kamu menggunakan repository atau service lain, ikuti cara itu.
-        Store store = storeRepository.findByUserUsername(username)
+        // 2. Check Store
+        var storeOptional = storeRepository.findByUserUsername(username);
+        System.out.println("2️⃣ Store ditemukan? " + storeOptional.isPresent());
+
+        if (storeOptional.isEmpty()) {
+            System.out.println("❌ STORE TIDAK DITEMUKAN!");
+            System.out.println("   Cek database: SELECT * FROM stores WHERE user_id = ?");
+            System.out.println("   Cek users: SELECT * FROM users WHERE username = '" + username + "'");
+        }
+
+        Store store = storeOptional
                 .orElseThrow(() -> new RuntimeException("Toko tidak ditemukan"));
+        System.out.println("3️⃣ Store Name: " + store.getNamaToko());
+        System.out.println("4️⃣ Store ID: " + store.getId());
 
-        // 3. Ambil daftar transaksi untuk tabel list
-        model.addAttribute("listTransaksi", storeTransaksiService.getTransaksiByStore(username));
+        // 3. Check Peralatan
+        List<Peralatan> alatList = peralatanService.getPeralatanByStore(store);
+        System.out.println("5️⃣ Total Peralatan: " + alatList.size());
 
-        // 4. KITA AMBIL SAMA PERSIS MENGGUNAKAN SERVICE YANG DIPAKAI DI EQUIPMENT LIST
-        // Panggil peralatanService dengan parameter store yang sama seperti di halaman peralatan
-        // Hapus filter store sementara waktu untuk uji coba jalur data Thymeleaf -> JS
-        List<Peralatan> alatList = peralatanRepository.findAll();
+        if (alatList.isEmpty()) {
+            System.out.println("❌ PERALATAN KOSONG!");
+            System.out.println("   Cek database: SELECT * FROM peralatans WHERE store_id = " + store.getId());
+        } else {
+            alatList.forEach(alat -> {
+                System.out.println("   ✅ " + alat.getNamaAlat() +
+                        " (Harga: " + alat.getHargaSewaPerHari() +
+                        ", Stok: " + alat.getStok() + ")");
+            });
+        }
+
+        // 4. Check Transaksi
+        List<Transaksi> transaksiList = storeTransaksiService.getTransaksiByStore(username);
+        System.out.println("6️⃣ Total Transaksi: " + transaksiList.size());
+
+        // Set model
         model.addAttribute("listAlat", alatList);
+        model.addAttribute("listTransaksi", transaksiList);
+        model.addAttribute("store", store);
+
+        System.out.println("🔍 === END DEBUG ===");
+        System.out.println("");
 
         return "store/transaction-list";
     }
@@ -69,8 +100,7 @@ public class StoreTransaksiController {
         return "redirect:/store/transaksi";
     }
 
-    // Tambahkan di dalam StoreTransaksiController.java
-
+    // ✅ PERBAIKAN: Simpan offline rental dengan stock tracking
     @PostMapping("/save-offline")
     public String simpanOfflineRental(@RequestParam String customerName,
                                       @RequestParam String phoneNumber,

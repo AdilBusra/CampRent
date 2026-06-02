@@ -76,4 +76,20 @@ public class PeralatanService {
     public List<Peralatan> searchPeralatan(String keyword) {
         return peralatanRepository.findByNamaAlatContainingIgnoreCase(keyword);
     }
+
+    // UPDATE TAMBAHAN: Logika filter pencarian untuk sisi Store
+    public List<Peralatan> getPeralatanFiltered(Store store, String keyword, Long categoryId) {
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean hasCategory = categoryId != null;
+
+        if (hasKeyword && hasCategory) {
+            return peralatanRepository.findByStoreAndNamaAlatContainingIgnoreCaseAndKategoriId(store, keyword, categoryId);
+        } else if (hasKeyword) {
+            return peralatanRepository.findByStoreAndNamaAlatContainingIgnoreCase(store, keyword);
+        } else if (hasCategory) {
+            return peralatanRepository.findByStoreAndKategoriId(store, categoryId);
+        } else {
+            return peralatanRepository.findByStore(store);
+        }
+    }
 }

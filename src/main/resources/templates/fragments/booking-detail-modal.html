@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head><title></title></head>
+<body>
+
+<div th:fragment="bookingDetailModal">
+
+    <div id="bookingDetailModal"
+         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+
+        <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl max-h-[85vh] overflow-y-auto">
+
+            <div class="flex items-center justify-between bg-[#12372A] px-6 py-5 text-white">
+                <div>
+                    <h2 class="text-2xl font-bold">Booking Detail</h2>
+                    <p class="text-sm text-white/70">Review customer booking information</p>
+                </div>
+                <button type="button" onclick="closeBookingDetailModal()"
+                        class="text-3xl leading-none hover:text-[#F28C73] transition">×</button>
+            </div>
+
+            <div class="p-6 space-y-6">
+
+                <!-- ✅ INFO CARDS -->
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <div class="rounded-xl bg-[#F8F5EC] p-4">
+                        <p class="text-sm text-gray-500">Booking ID</p>
+                        <p id="modalBookingId" class="font-bold text-lg">#--</p>
+                    </div>
+
+                    <div class="rounded-xl bg-[#F8F5EC] p-4">
+                        <p class="text-sm text-gray-500">Source</p>
+                        <span class="mt-1 inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                            ONLINE
+                        </span>
+                    </div>
+
+                    <div class="rounded-xl bg-[#F8F5EC] p-4">
+                        <p class="text-sm text-gray-500">Customer</p>
+                        <p id="modalCustomerName" class="font-bold">--</p>
+                        <p id="modalCustomerPhone" class="text-sm text-gray-500">--</p>
+                    </div>
+
+                    <div class="rounded-xl bg-[#F8F5EC] p-4">
+                        <p class="text-sm text-gray-500">Status</p>
+                        <span id="modalBookingStatus"
+                              class="mt-1 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                            DIPAKAI
+                        </span>
+                    </div>
+
+                    <div class="rounded-xl bg-[#F8F5EC] p-4">
+                        <p class="text-sm text-gray-500">Rental Date</p>
+                        <p id="modalRentalDate" class="font-bold">--</p>
+                    </div>
+
+                    <div class="rounded-xl bg-[#F8F5EC] p-4">
+                        <p class="text-sm text-gray-500">Return Date</p>
+                        <p id="modalReturnDate" class="font-bold">--</p>
+                    </div>
+
+                </section>
+
+                <!-- ✅ BOOKED ITEMS TABLE -->
+                <section class="rounded-2xl border border-[#12372A]/10 overflow-hidden">
+                    <div class="bg-[#F8F5EC] px-5 py-4">
+                        <h3 class="font-bold">Booked Items</h3>
+                    </div>
+
+                    <div id="modalBookedItems" class="divide-y divide-gray-100">
+                        <!-- Items akan di-populate via JavaScript -->
+                    </div>
+
+                    <div class="flex items-center justify-between bg-[#F8F5EC] px-5 py-4">
+                        <p class="font-bold">Total Booking</p>
+                        <p id="modalTotalPrice" class="text-xl font-bold text-[#F28C73]">Rp0</p>
+                    </div>
+                </section>
+
+                <!-- ✅ WARNING INFO -->
+                <section class="rounded-xl border border-yellow-300 bg-yellow-50 p-4">
+                    <p class="text-sm text-yellow-800">
+                        ⚠ This application only handles booking. Payment is not processed inside the system.
+                    </p>
+                </section>
+
+                <!-- ✅ ACTION BUTTONS -->
+                <section class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+
+                    <button type="button" onclick="closeBookingDetailModal()"
+                            class="rounded-xl border border-[#12372A]/20 px-5 py-3 font-semibold hover:bg-[#F8F5EC] transition">
+                        Close
+                    </button>
+
+                    <!-- Status: PENDING - Serahkan Barang -->
+                    <button id="markAsPickedUpButton" type="button"
+                            class="hidden rounded-xl bg-green-600 px-5 py-3 text-white font-semibold hover:bg-green-700 transition">
+                        Mark as Picked Up
+                    </button>
+
+                    <!-- Status: DIPAKAI - Terima Pengembalian -->
+                    <button id="markAsReturnedButton" type="button"
+                            class="hidden rounded-xl bg-green-600 px-5 py-3 text-white font-semibold hover:bg-green-700 transition">
+                        Mark as Returned
+                    </button>
+
+                </section>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
