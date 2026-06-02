@@ -5,74 +5,186 @@
   <title>Cart - CampRent</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-[#F4F4F2] text-slate-800 font-sans antialiased">
 
 <div th:replace="~{fragments/customer-navbar :: customerNavbar('cart')}"></div>
 
 <main class="pt-24 min-h-screen">
+
   <section class="max-w-7xl mx-auto px-8 pb-16">
 
-    <h1 class="text-3xl font-bold text-[#19381C]">My Cart</h1>
-    <p class="text-sm text-gray-500 mt-2">Review your selected camping equipment before booking.</p>
+    <h1 class="text-3xl font-bold text-[#19381C]">
+      My Cart
+    </h1>
 
-    <div th:if="${#lists.isEmpty(listKeranjang)}" class="mt-8 bg-white rounded-3xl p-12 text-center border shadow-sm">
-      <div class="text-6xl mb-4">🛒</div>
-      <h3 class="text-xl font-bold text-[#19381C]">Your cart is empty</h3>
-      <p class="text-gray-500 mt-2">Go to the catalog to find exciting camping gears!</p>
-      <a th:href="@{/customer/katalog}" class="mt-5 inline-block rounded-xl bg-[#E27252] px-6 py-3 text-white font-semibold">Browse Catalog</a>
-    </div>
+    <p class="text-sm text-gray-500 mt-2">
+      Review your selected camping equipment before booking.
+    </p>
 
-    <div th:if="${!#lists.isEmpty(listKeranjang)}" class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
 
       <section class="lg:col-span-2 space-y-5">
-        <th:block th:each="item : ${listKeranjang}">
-          <div th:replace="~{fragments/cart-item :: itemKeranjangRow(${item})}"></div>
-        </th:block>
+
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex gap-5">
+          <div class="w-32 h-32 rounded-2xl bg-[#EAE5D8] flex items-center justify-center text-5xl">
+            🏕️
+          </div>
+
+          <div class="flex-1">
+            <div class="flex justify-between gap-4">
+              <div>
+                <p class="text-xs font-bold text-[#E27252]">TENT</p>
+                <h2 class="text-xl font-bold text-[#19381C] mt-1">
+                  Tent Dome Borneo 4
+                </h2>
+                <p class="text-sm text-gray-500 mt-1">
+                  By Mountain Adventure
+                </p>
+              </div>
+
+              <button class="text-red-500 font-bold">
+                Remove
+              </button>
+            </div>
+
+            <div class="mt-5 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <button class="w-9 h-9 rounded-lg border font-bold">-</button>
+                <span class="font-bold">1</span>
+                <button class="w-9 h-9 rounded-lg border font-bold">+</button>
+              </div>
+
+              <p class="text-lg font-bold text-[#E27252]">
+                Rp 80.000/day
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex gap-5">
+          <div class="w-32 h-32 rounded-2xl bg-[#EAE5D8] flex items-center justify-center text-5xl">
+            🎒
+          </div>
+
+          <div class="flex-1">
+            <div class="flex justify-between gap-4">
+              <div>
+                <p class="text-xs font-bold text-[#E27252]">BACKPACK</p>
+                <h2 class="text-xl font-bold text-[#19381C] mt-1">
+                  Carrier Eiger 60L
+                </h2>
+                <p class="text-sm text-gray-500 mt-1">
+                  By Mountain Adventure
+                </p>
+              </div>
+
+              <button class="text-red-500 font-bold">
+                Remove
+              </button>
+            </div>
+
+            <div class="mt-5 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <button class="w-9 h-9 rounded-lg border font-bold">-</button>
+                <span class="font-bold">1</span>
+                <button class="w-9 h-9 rounded-lg border font-bold">+</button>
+              </div>
+
+              <p class="text-lg font-bold text-[#E27252]">
+                Rp 70.000/day
+              </p>
+            </div>
+          </div>
+        </div>
+
       </section>
 
       <aside class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 h-fit">
-        <h2 class="text-2xl font-bold text-[#19381C]">Booking Summary</h2>
+
+        <h2 class="text-2xl font-bold text-[#19381C]">
+          Booking Summary
+        </h2>
 
         <div class="mt-4 rounded-xl border border-yellow-300 bg-yellow-50 p-4">
           <p class="text-sm text-yellow-800 leading-relaxed">
             ⚠ Booking must be picked up within 2 hours after confirmation.
+            If it is not picked up, the booking will be automatically cancelled and stock will be returned.
           </p>
         </div>
 
         <div class="mt-6 space-y-4">
+
           <div>
-            <label class="block text-sm font-semibold mb-2">Rental Date</label>
-            <input id="cartRentalDate" type="date" onchange="updateCartSummary()" class="w-full rounded-xl border border-gray-200 px-4 py-3">
+            <label class="block text-sm font-semibold mb-2">
+              Rental Date
+            </label>
+            <input id="cartRentalDate"
+                   type="date"
+                   onchange="updateCartSummary()"
+                   oninput="updateCartSummary()"
+                   class="w-full rounded-xl border border-gray-200 px-4 py-3">
           </div>
+
           <div>
-            <label class="block text-sm font-semibold mb-2">Return Date</label>
-            <input id="cartReturnDate" type="date" onchange="updateCartSummary()" class="w-full rounded-xl border border-gray-200 px-4 py-3">
+            <label class="block text-sm font-semibold mb-2">
+              Return Date
+            </label>
+            <input id="cartReturnDate"
+                   type="date"
+                   onchange="updateCartSummary()"
+                   oninput="updateCartSummary()"
+                   class="w-full rounded-xl border border-gray-200 px-4 py-3">
           </div>
 
           <div class="rounded-xl bg-[#F4F4F2] p-4">
             <p class="text-sm text-gray-500">Rental Duration</p>
-            <p id="cartDurationText" class="font-bold text-[#19381C]">Select rental and return date</p>
+            <p id="cartDurationText" class="font-bold text-[#19381C]">
+              Select rental and return date
+            </p>
           </div>
+
         </div>
 
         <div class="mt-6 border-t pt-5 space-y-3 text-sm">
+
+          <div class="flex justify-between">
+            <span>Tent Dome Borneo 4 × 1</span>
+            <span id="tentSubtotal">Rp 80.000</span>
+          </div>
+
+          <div class="flex justify-between">
+            <span>Carrier Eiger 60L × 1</span>
+            <span id="carrierSubtotal">Rp 70.000</span>
+          </div>
+
           <div class="flex justify-between text-gray-500">
             <span>Duration</span>
             <span id="summaryDuration">1 day</span>
           </div>
+
           <div class="flex justify-between font-bold text-lg pt-3 border-t">
             <span>Total</span>
-            <span id="cartTotal" class="text-[#E27252]">Rp 0</span>
+            <span id="cartTotal" class="text-[#E27252]">Rp 150.000</span>
           </div>
+
         </div>
 
-        <a th:href="@{/customer/booking-success}" class="mt-6 block w-full rounded-xl bg-[#E27252] px-5 py-4 text-center text-white font-semibold hover:bg-[#c85f41]">
+        <a th:href="@{/customer/booking-success}"
+           class="mt-6 block w-full rounded-xl bg-[#E27252] px-5 py-4 text-center text-white font-semibold hover:bg-[#c85f41]">
           Proceed Booking
         </a>
+
+        <p class="mt-4 text-xs text-gray-500 leading-relaxed">
+          Payment is not processed inside CampRent. Booking only reserves the equipment before pickup.
+        </p>
+
       </aside>
 
     </div>
+
   </section>
+
 </main>
 
 <script>
@@ -84,10 +196,13 @@
       const rentalDateInput = document.getElementById("cartRentalDate");
       const returnDateInput = document.getElementById("cartReturnDate");
 
-      if (!rentalDateInput.value || !returnDateInput.value) return 1;
+      if (!rentalDateInput.value || !returnDateInput.value) {
+          return 1;
+      }
 
       const rentalDate = new Date(rentalDateInput.value);
       const returnDate = new Date(returnDateInput.value);
+
       const diffTime = returnDate - rentalDate;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -95,17 +210,22 @@
   }
 
   function updateCartSummary() {
+      const tentPrice = 80000;
+      const carrierPrice = 70000;
+
+      const tentQty = 1;
+      const carrierQty = 1;
+
       const duration = calculateCartDuration();
-      let totalBiayaSeluruhnya = 0;
 
-      // Scan seluruh item row yang dirender oleh Thymeleaf fragment
-      document.querySelectorAll('.data-cart-row').forEach(row => {
-          const harga = parseInt(row.getAttribute('data-price')) || 0;
-          const qty = parseInt(row.getAttribute('data-qty')) || 1;
-          totalBiayaSeluruhnya += (harga * qty * duration);
-      });
+      const tentSubtotal = tentPrice * tentQty * duration;
+      const carrierSubtotal = carrierPrice * carrierQty * duration;
+      const total = tentSubtotal + carrierSubtotal;
 
-      document.getElementById("cartTotal").innerText = formatRupiah(totalBiayaSeluruhnya);
+      document.getElementById("tentSubtotal").innerText = formatRupiah(tentSubtotal);
+      document.getElementById("carrierSubtotal").innerText = formatRupiah(carrierSubtotal);
+      document.getElementById("cartTotal").innerText = formatRupiah(total);
+
       document.getElementById("summaryDuration").innerText = duration + " day(s)";
       document.getElementById("cartDurationText").innerText = duration + " day(s)";
   }
