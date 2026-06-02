@@ -1,48 +1,36 @@
 <nav th:fragment="navbar(pageTitle)"
-     class="sticky top-0 z-30 bg-white border-b border-[#12372A]/10 px-6 py-4 flex items-center justify-between">
+     class="sticky top-0 z-30 bg-white border-b border-[#12372A]/10 ml-64 px-6 py-4 flex items-center justify-between">
 
     <div class="flex items-center">
-
-        <button type="button"
-                onclick="toggleStoreSidebar()"
-                class="lg:hidden mr-3 rounded-lg bg-[#12372A] px-3 py-2 text-white">
-            ☰
-        </button>
-
         <div>
-            <h2 class="text-2xl font-bold text-[#12372A]"
-                th:text="${pageTitle}">
-                Dashboard
+            <h2 class="text-2xl font-bold text-[#12372A]">
+                <span th:if="${pageTitle == 'Dashboard'}">
+                    Welcome, <span th:text="${store != null ? store.namaToko + '!' : 'Mountain Adventure'}">Mountain Adventure</span>
+                </span>
+
+                <span th:if="${pageTitle == 'Equipment Inventory'}">
+                    <span th:text="${store != null ? store.namaToko : 'Mountain Adventure'}">Mountain Adventure</span>'s Equipment
+                </span>
+
+                <span th:unless="${pageTitle == 'Dashboard' or pageTitle == 'Equipment Inventory'}" th:text="${pageTitle}">
+                    Judul Halaman Lain
+                </span>
             </h2>
-
-            <p class="text-sm text-[#12372A]/60 mt-1">
-                Welcome back to CampRent Store Panel
-            </p>
         </div>
-
     </div>
 
     <div class="flex items-center gap-4">
-
-        <div class="hidden md:flex items-center gap-3 bg-[#F8F5EC] px-4 py-2 rounded-xl">
-
-            <div class="w-10 h-10 rounded-full bg-[#12372A] text-white flex items-center justify-center font-bold">
-                S
+        <div class="flex items-center gap-3 bg-[#F8F5EC] px-4 py-2 rounded-xl">
+            <div class="w-10 h-10 rounded-full bg-[#12372A] text-white flex items-center justify-center font-bold"
+                 th:text="${store != null ? #strings.substring(store.namaToko,0,1) : 'M'}">
+                M
             </div>
-
             <div>
-                <p class="text-sm font-semibold"
-                   th:text="${store.namaToko}">
+                <p class="text-sm font-semibold" th:text="${store != null ? store.namaToko : 'Mountain Adventure'}">
                     Mountain Adventure
                 </p>
-
-                <p class="text-xs text-gray-500">
-                    Store Partner
-                </p>
+                <p class="text-xs text-gray-500">Store Partner</p>
             </div>
-
         </div>
-
     </div>
-
 </nav>

@@ -6,12 +6,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-[#F8F5EC] text-[#12372A]">
+<body class="bg-[#F8F5EC] text-[#12372A] min-h-screen flex flex-col">
 
 <div th:replace="~{fragments/store-sidebar :: storeSidebar('profile')}"></div>
-<div th:replace="~{fragments/navbar :: navbar('Store Profile')}"></div>
+<div th:replace="~{fragments/navbar :: navbar('Manage Store Details')}"></div>
 
-<main class="min-h-screen lg:ml-64 p-6">
+<main class="flex-1 lg:ml-64 p-6">
 
     <section class="mb-8">
         <h1 class="text-3xl font-bold">Store Profile</h1>
@@ -113,9 +113,11 @@
 
     </section>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
 
 </main>
+<div class="lg:pl-64 mt-auto">
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</div>
 
 <script th:src="@{/js/main.js}"></script>
 

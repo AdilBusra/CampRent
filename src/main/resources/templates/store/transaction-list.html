@@ -6,12 +6,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-[#F8F5EC] text-[#12372A]">
+<body class="bg-[#F8F5EC] text-[#12372A] min-h-screen flex flex-col">
 
 <div th:replace="~{fragments/store-sidebar :: storeSidebar('transactions')}"></div>
-<div th:replace="~{fragments/navbar :: navbar('Booking Management')}"></div>
+<div th:replace="~{fragments/navbar :: navbar('Track Rental Orders')}"></div>
 
-<main class="min-h-screen lg:ml-64 p-6">
+<main class="flex-1 lg:ml-64 p-6">
 
     <section class="mb-8">
         <div class="flex items-center justify-between">
@@ -24,7 +24,6 @@
         </div>
     </section>
 
-    <!-- ✅ BUTTON TO OPEN OFFLINE RENTAL FORM -->
     <div class="mb-6">
         <button type="button" onclick="openOfflineRentalModal()"
                 class="rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
@@ -32,7 +31,6 @@
         </button>
     </div>
 
-    <!-- ✅ TRANSAKSI TABLE - DYNAMIC DATA FROM DATABASE -->
     <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
@@ -52,7 +50,6 @@
 
                 <tbody class="divide-y divide-gray-100">
 
-                <!-- ✅ JIKA TIDAK ADA TRANSAKSI -->
                 <tr th:if="${#lists.isEmpty(listTransaksi)}">
                     <td colspan="8" class="px-5 py-16">
                         <div class="flex flex-col items-center justify-center text-center">
@@ -65,12 +62,10 @@
                     </td>
                 </tr>
 
-                <!-- ✅ LOOP TRANSAKSI DARI DATABASE -->
                 <tr th:each="transaksi : ${listTransaksi}" class="hover:bg-[#F8F5EC] transition cursor-pointer"
                     th:onclick="openDetailModal([[${transaksi.id}]], [[${transaksi.source}]])">
 
                     <td class="px-5 py-4 font-semibold">
-                        <!-- Format ID sesuai source: ONLINE (#ON001) atau OFFLINE (#OFF001) -->
                         <span th:text="${transaksi.source == 'ONLINE'} ? '#ON' + ${transaksi.id} : '#OFF' + ${transaksi.id}">
                             #--
                         </span>
@@ -83,7 +78,6 @@
                         </span>
                     </td>
 
-                    <!-- ✅ CUSTOMER NAME (Online: dari Customer, Offline: dari namaCustomer) -->
                     <td class="px-5 py-4">
                         <span th:if="${transaksi.source == 'ONLINE'}"
                               th:text="${transaksi.customer?.namaLengkap ?: 'Unknown'}">
@@ -129,33 +123,126 @@
         </div>
     </section>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
 
 </main>
 
-<!-- ✅ IMPORT FRAGMENTS (Modal & Form) -->
+<div class="lg:pl-64 mt-auto">
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</div>
+
 <div th:replace="~{fragments/offline-rental-modal :: offlineRentalModal}"></div>
 <div th:replace="~{fragments/booking-detail-modal :: bookingDetailModal}"></div>
 <div th:replace="~{fragments/offline-detail-modal :: offlineDetailModal}"></div>
 
-<!-- ✅ SCRIPT: Inject Data Thymeleaf ke JavaScript -->
+<script>
+    // A. Kunci Keyboard dari karakter minus atau aneh
+    function blockMinusAndZero(e) {
+        if (["-", "+", "e", "E", ".", ","].includes(e.key)) {
+            e.preventDefault();
+        }
+    }
+
+    // B. Trigger alert pop up jika diubah pakai scroll panah
+    function validateQtyAlert(input) {
+        const rentalItemRow = input.closest('.rental-item');
+        if (!rentalItemRow) return;
+
+        const selectElement = rentalItemRow.querySelector('.equipment-select');
+        if (!selectElement) return;
+
+        const peralatanId = parseInt(selectElement.value);
+        let maxStok = 999;
+
+        if (window.dataPeralatanToko && peralatanId) {
+            const alat = window.dataPeralatanToko.find(a => a.id === peralatanId);
+            if (alat) {
+                maxStok = alat.stok;
+            }
+        }
+
+        let value = parseInt(input.value);
+
+        if (isNaN(value) || value <= 0) {
+            alert("Lek, kuantitas item tidak boleh 0 atau minus!");
+            input.value = 1;
+            if (typeof updateRentalSummary === "function") updateRentalSummary();
+            return;
+        }
+
+        if (value > maxStok) {
+            alert("Lek, kuantitas melebihi stok! Stok yang tersisa hanya " + maxStok);
+            input.value = maxStok;
+            if (typeof updateRentalSummary === "function") updateRentalSummary();
+            return;
+        }
+
+        if (typeof updateRentalSummary === "function") {
+            updateRentalSummary();
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // Pemasangan otomatis tanggal hari ini
+        const inputTanggalSewa = document.getElementById("offlineRentalDate");
+        if (inputTanggalSewa) {
+            const hariIni = new Date().toISOString().split('T')[0];
+            inputTanggalSewa.value = hariIni;
+            inputTanggalSewa.setAttribute("min", hariIni);
+        }
+
+        // Validasi pengaman lapis akhir pas klik submit form
+        const formOffline = document.querySelector("form[action*='save-offline']");
+        if (formOffline) {
+            formOffline.addEventListener("submit", function (e) {
+                const rentalItems = formOffline.querySelectorAll(".rental-item");
+                let valid = true;
+                let pesanError = "";
+
+                rentalItems.forEach(item => {
+                    const selectElement = item.querySelector('.equipment-select');
+                    const qtyInput = item.querySelector('.quantity-input');
+
+                    if(selectElement && qtyInput) {
+                        const peralatanId = parseInt(selectElement.value);
+                        const value = parseInt(qtyInput.value);
+
+                        if (window.dataPeralatanToko && peralatanId) {
+                            const alat = window.dataPeralatanToko.find(a => a.id === peralatanId);
+                            if (alat) {
+                                if (isNaN(value) || value <= 0) {
+                                    valid = false;
+                                    pesanError = "Kuantitas item tidak boleh 0 atau minus!";
+                                } else if (value > alat.stok) {
+                                    valid = false;
+                                    pesanError = "Stok untuk " + alat.namaAlat + " tidak mencukupi! Sisa: " + alat.stok;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                if (!valid) {
+                    e.preventDefault();
+                    alert("Gagal memproses transaksi, Lek!\n" + pesanError);
+                }
+            });
+        }
+    });
+</script>
+
 <script th:inline="javascript">
     /*<![CDATA[*/
-    // ✅ DATA PERALATAN: Dari Controller ke JavaScript untuk dropdown
     window.dataPeralatanToko = [
         /*[# th:each="alat, stat : ${listAlat}"]*/
-{
-    id: /*[[${alat.id}]]*/ 0,
-    namaAlat: /*[[${alat.namaAlat}]]*/ '',
-    hargaSewaPerHari: /*[[${alat.hargaSewaPerHari}]]*/ 0,
-    stok: /*[[${alat.stok}]]*/ 0
-}/*[# th:if="${!stat.last}"]*/,/*[/]*/
-/*[/]*/
-    ].filter(item => item.id !== 0); // Filter out any empty placeholder
+        {
+            id: /*[[${alat.id}]]*/ 0,
+            namaAlat: /*[[${alat.namaAlat}]]*/ '',
+            hargaSewaPerHari: /*[[${alat.hargaSewaPerHari}]]*/ 0,
+            stok: /*[[${alat.stok}]]*/ 0
+        }/*[# th:if="${!stat.last}"]*/,/*[/]*/
+        /*[/]*/
+    ].filter(item => item.id !== 0);
 
-    console.log("Data Peralatan Loaded:", window.dataPeralatanToko); // DEBUG
-
-    // ✅ DATA TRANSAKSI: Untuk populate modal saat diklik
     window.dataTransaksi = [
         /*[# th:each="transaksi : ${listTransaksi}"]*/
         {
@@ -170,25 +257,17 @@
         }/*[# th:if="${!#lists.isLast(transaksi)}"]*/,/*[/]*/
         /*[/]*/
     ].filter(item => item.id !== 0);
-
-    console.log("Data Transaksi Loaded:", window.dataTransaksi); // DEBUG
     /*]]>*/
 </script>
 
 <script th:src="@{/js/main.js}"></script>
 
-<!-- ✅ HELPER FUNCTION: Buka modal detail sesuai source -->
 <script>
     function openDetailModal(transaksiId, source) {
         const transaksi = window.dataTransaksi.find(t => t.id === transaksiId);
-
-        if (!transaksi) {
-            console.error("Transaksi tidak ditemukan:", transaksiId);
-            return;
-        }
+        if (!transaksi) return;
 
         if (source === 'ONLINE') {
-            // Populate Online Booking Modal
             document.getElementById("modalBookingId").innerText = "#ON" + transaksi.id;
             document.getElementById("modalCustomerName").innerText = transaksi.namaCustomer;
             document.getElementById("modalCustomerPhone").innerText = transaksi.noHp;
@@ -196,7 +275,6 @@
             document.getElementById("modalReturnDate").innerText = transaksi.tanggalKembali;
             document.getElementById("modalTotalPrice").innerText = "Rp" + transaksi.totalHarga.toLocaleString("id-ID");
 
-            // Set status badge
             const statusBadge = document.getElementById("modalBookingStatus");
             statusBadge.innerText = transaksi.status;
             statusBadge.className = transaksi.status === 'TERLAMBAT' ?
@@ -205,7 +283,6 @@
 
             openBookingDetailModal();
         } else {
-            // Populate Offline Rental Modal
             document.getElementById("modalOfflineId").innerText = "#OFF" + transaksi.id;
             document.getElementById("modalOfflineCustomerName").innerText = transaksi.namaCustomer;
             document.getElementById("modalOfflineCustomerPhone").innerText = transaksi.noHp;

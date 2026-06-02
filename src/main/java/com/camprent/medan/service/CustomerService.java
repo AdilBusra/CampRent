@@ -1,13 +1,11 @@
 package com.camprent.medan.service;
 
-import com.camprent.medan.entity.KeranjangItem;
-import com.camprent.medan.entity.Peralatan;
-import com.camprent.medan.entity.Kategori;
-import com.camprent.medan.entity.Customer;
+import com.camprent.medan.repository.KategoriRepository;
+import com.camprent.medan.entity.*;
 import com.camprent.medan.repository.KeranjangRepository;
 import com.camprent.medan.repository.PeralatanRepository;
-import com.camprent.medan.repository.CustomerRepository;
-import com.camprent.medan.repository.KategoriRepository;
+import com.camprent.medan.repository.CustomerRepository; // Import repository Customer
+import com.camprent.medan.repository.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -27,7 +25,9 @@ public class CustomerService {
 
     @Autowired
     private KategoriRepository kategoriRepository;
-
+    
+    @Autowired
+    private StoreRepository storeRepository;
     /**
      * Mengambil kategori berdasarkan keyword pencarian.
      * Jika keyword kosong, kembalikan semua kategori.
@@ -116,5 +116,17 @@ public class CustomerService {
             item.setKuantitas(Math.max(1, item.getKuantitas() + jumlah));
             keranjangRepository.save(item);
         }
+    }
+    // Tambahkan method ini di paling bawah CustomerService.java sebelum tanda penutup kelas '}'
+    public Optional<Peralatan> getPeralatanById(Long id) {
+        return peralatanRepository.findById(id);
+    }
+
+    public Optional<Store> getStoreById(Long id) {
+        return storeRepository.findById(id);
+    }
+
+    public List<Peralatan> getPeralatanByStore(Store store) {
+        return peralatanRepository.findByStore(store);
     }
 }

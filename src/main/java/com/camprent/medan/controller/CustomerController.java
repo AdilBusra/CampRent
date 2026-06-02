@@ -4,6 +4,7 @@ import com.camprent.medan.entity.KeranjangItem;
 import com.camprent.medan.entity.Peralatan;
 import com.camprent.medan.entity.Customer;
 import com.camprent.medan.entity.Kategori;
+import com.camprent.medan.entity.Store;
 import com.camprent.medan.service.CustomerService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,6 +138,22 @@ public class CustomerController {
         return "redirect:/customer/profile";
     }
 
+    // Menampilkan halaman detail peralatan berdasarkan ID secara dinamis
+    @GetMapping("/equipment/detail/{id}")
+    public String detailPeralatan(@PathVariable("id") Long id, Model model) {
+        // Ambil data peralatan dari database menggunakan service yang sudah ada
+        java.util.Optional<com.camprent.medan.entity.Peralatan> peralatanOpt = customerService.getPeralatanById(id);
+
+        if (peralatanOpt.isEmpty()) {
+            return "redirect:/customer/katalog?error=AlatTidakDitemukan";
+        }
+
+        // Kirim objek peralatan ke dalam template HTML
+        model.addAttribute("peralatan", peralatanOpt.get());
+        return "customer/equipment-detail";
+    }
+
+    // Shortcut Book Now: Tambah ke keranjang lalu langsung arahkan ke halaman cart
     @GetMapping("/booking/{id}")
     public String instantBooking(@PathVariable("id") Long id, Principal principal) {
         String username = (principal != null) ? principal.getName() : "amelia";
@@ -148,5 +165,26 @@ public class CustomerController {
     public String manualLogout(HttpSession session) {
         session.invalidate();
         return "redirect:/login";
+    }
+
+    @GetMapping("/store/detail/{id}")
+    public String detailStore(@PathVariable("id") Long id, Model model) {
+        // 1. Ambil data toko berdasarkan ID
+        java.util.Optional<Store> storeOpt = customerService.getStoreById(id);
+
+        if (storeOpt.isEmpty()) {
+            return "redirect:/customer/katalog?error=TokoTidakDitemukan";
+        }
+
+        Store store = storeOpt.get();
+
+        // 2. Ambil semua peralatan gunung yang dijual oleh toko ini saja
+        List<Peralatan> listPeralatanToko = customerService.getPeralatanByStore(store);
+
+        // 3. Masukkan ke model agar bisa dibaca Thymeleaf
+        model.addAttribute("store", store);
+        model.addAttribute("listKatalog", listPeralatanToko); // kita pakai nama listKatalog agar mudah dilooping
+
+        return "customer/store-detail";
     }
 }

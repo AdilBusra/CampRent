@@ -6,25 +6,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-[#F8F5EC] text-[#12372A]">
+<body class="bg-[#F8F5EC] text-[#12372A] min-h-screen flex flex-col">
 
+<!-- Sidebar Fragment -->
 <div th:replace="~{fragments/store-sidebar :: storeSidebar('equipment')}"></div>
 
+<!-- Navbar Fragment (Mengirimkan parameter 'Equipment Inventory' agar dibaca Navbar) -->
 <div th:replace="~{fragments/navbar :: navbar('Equipment Inventory')}"></div>
 
-<main class="min-h-screen lg:ml-64 p-6">
+<main class="flex-1 lg:ml-64 p-6">
 
+    <!-- Section Header Halaman -->
     <section class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div th:if="${successMessage}"
              class="mb-6 rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-700">
-
             <p class="font-semibold" th:text="${successMessage}">
                 Equipment successfully saved.
             </p>
-
         </div>
 
         <div>
+            <!-- Judul kedua diubah menjadi kalimat aksi agar tidak duplikat dengan navbar -->
             <h1 class="text-3xl font-bold">Equipment Inventory</h1>
             <p class="text-sm text-[#12372A]/70 mt-1">
                 Manage your camping equipment, stock, rental price, and damage penalty.
@@ -37,6 +39,7 @@
         </a>
     </section>
 
+    <!-- Section Form Filter & Pencarian -->
     <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 p-5 mb-6">
         <form th:action="@{/store/equipment}" method="get"
               class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -64,6 +67,7 @@
         </form>
     </section>
 
+    <!-- Section Tabel Data Perlengkapan -->
     <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left">
@@ -80,47 +84,31 @@
 
                 <tbody class="divide-y divide-gray-100">
 
+                <!-- State Jika Data Kosong -->
                 <tr th:if="${#lists.isEmpty(listPeralatan)}">
                     <td colspan="6" class="px-5 py-16">
-
                         <div class="flex flex-col items-center justify-center text-center">
-
-                            <div class="text-6xl mb-4">
-                                🎒
-                            </div>
-
-                            <h3 class="text-xl font-bold text-[#12372A]">
-                                No Equipment Yet
-                            </h3>
-
+                            <div class="text-6xl mb-4">🎒</div>
+                            <h3 class="text-xl font-bold text-[#12372A]">No Equipment Yet</h3>
                             <p class="mt-2 text-sm text-gray-500 max-w-md">
                                 Start adding your camping equipment to make it available for rent on CampRent.
                             </p>
-
                             <a th:href="@{/store/peralatan/add}"
                                class="mt-6 rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
                                 + Add First Equipment
                             </a>
-
                         </div>
-
                     </td>
                 </tr>
 
+                <!-- Iterasi Data Peralatan -->
                 <tr th:each="peralatan : ${listPeralatan}" class="hover:bg-[#F8F5EC] transition">
                     <td class="px-5 py-4">
-                        <p class="font-semibold" th:text="${peralatan.namaAlat}">
-                            Tenda Dome Borneo 4
-                        </p>
-                        <p class="text-sm text-gray-500" th:text="${peralatan.merek}">
-                            Eiger
-                        </p>
+                        <p class="font-semibold" th:text="${peralatan.namaAlat}">Tenda Dome Borneo 4</p>
+                        <p class="text-sm text-gray-500" th:text="${peralatan.merek}">Eiger</p>
                     </td>
 
-                    <td class="px-5 py-4"
-                        th:text="${peralatan.kategori.namaKategori}">
-                        Tenda
-                    </td>
+                    <td class="px-5 py-4" th:text="${peralatan.kategori.namaKategori}">Tenda</td>
 
                     <td class="px-5 py-4">
                         <span class="rounded-full px-3 py-1 text-sm font-semibold"
@@ -146,7 +134,6 @@
                                class="rounded-lg bg-yellow-100 px-3 py-2 text-sm font-semibold text-yellow-700 hover:bg-yellow-200">
                                 Edit
                             </a>
-
                             <form th:action="@{/store/equipment/delete/{id}(id=${peralatan.id})}"
                                   method="post"
                                   onsubmit="return confirm('Delete this equipment?')">
@@ -164,11 +151,15 @@
         </div>
     </section>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
+    <!-- Footer Fragment -->
 
 </main>
 
-    <script th:src="@{/js/main.js}"></script>
+<div class="lg:pl-64 mt-auto">
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</div>
+
+<script th:src="@{/js/main.js}"></script>
 
 </body>
 </html>
