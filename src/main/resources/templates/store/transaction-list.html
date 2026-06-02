@@ -1,573 +1,228 @@
-    <!DOCTYPE html>
-    <html lang="en" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <meta charset="UTF-8">
-        <title>Booking & Rental Management - CampRent</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-    </head>
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Booking & Rental Management - CampRent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
 
-    <body class="bg-[#F8F5EC] text-[#12372A]">
+<body class="bg-[#F8F5EC] text-[#12372A]">
 
-    <div th:replace="~{fragments/store-sidebar :: storeSidebar('transactions')}"></div>
-    <div th:replace="~{fragments/navbar :: navbar('Booking Management')}"></div>
+<div th:replace="~{fragments/store-sidebar :: storeSidebar('transactions')}"></div>
+<div th:replace="~{fragments/navbar :: navbar('Booking Management')}"></div>
 
-    <main class="min-h-screen lg:ml-64 p-6">
+<main class="min-h-screen lg:ml-64 p-6">
 
-    <!--    <section class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">-->
-    <!--        <h1 class="text-3xl font-bold">Booking Management</h1>-->
-
-    <!--        <div class="mt-4 rounded-xl border border-yellow-300 bg-yellow-50 p-4">-->
-    <!--            <p class="text-sm text-yellow-800">-->
-    <!--                ⚠ Booking must be picked up within 2 hours. Otherwise the booking will be cancelled automatically and stock will be returned to inventory.-->
-    <!--            </p>-->
-    <!--        </div>-->
-
-    <!--        <p class="text-sm text-[#12372A]/70 mt-4">-->
-    <!--            Monitor customer booking requests, pickup deadlines, and booking status.-->
-    <!--        </p>-->
-    <!--    </section>-->
-
-        <section class="mb-8">
-
-            <div class="flex items-center justify-between">
-
-                <div>
-
-                    <h1 class="text-3xl font-bold">
-                        Booking & Rental Management
-                    </h1>
-
-                    <p class="text-sm text-[#12372A]/70 mt-1">
-                        Monitor online bookings and offline rentals.
-                    </p>
-
-                </div>
-
+    <section class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold">Booking & Rental Management</h1>
+                <p class="text-sm text-[#12372A]/70 mt-1">
+                    Monitor online bookings and offline rentals.
+                </p>
             </div>
-
-        </section>
-
-        <div class="mb-6">
-            <button type="button"
-                    onclick="openOfflineRentalModal()"
-                    class="rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
-                + New Offline Rental
-            </button>
         </div>
-
-        <div id="offlineRentalModal"
-             class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
-
-            <div class="w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
-
-                <div class="bg-[#12372A] px-6 py-5 text-white">
-
-                    <h2 class="text-2xl font-bold">
-                        New Offline Rental
-                    </h2>
-
-                    <p class="text-sm text-white/70">
-                        Create walk-in customer rental
-                    </p>
-
-                </div>
-
-                <form th:action="@{/store/transaksi/save-offline}" method="POST" class="p-6 space-y-5">
-                    <div class="grid md:grid-cols-2 gap-5">
-                        <div>
-                            <label class="block text-sm font-semibold mb-2">Customer Name</label>
-                            <input type="text" name="customerName" required class="w-full rounded-xl border px-4 py-3">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold mb-2">Phone Number</label>
-                            <input type="text" name="phoneNumber" required class="w-full rounded-xl border px-4 py-3">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold mb-3">Rental Items</label>
-                            <div id="rentalItemsContainer" class="space-y-3">
-                                <div class="rental-item grid grid-cols-12 gap-3">
-                                    <div class="col-span-8">
-                                        <select id="modalPeralatanSelect" name="peralatanIds" class="equipment-select w-full rounded-xl border px-4 py-3" onchange="updateRentalSummary()" required>
-                                            <option value="" disabled selected>-- Pilih Alat Camping --</option>
-                                        </select>
-                                        </select>
-                                    </div>
-                                    <div class="col-span-3">
-                                        <input type="number" name="kuantitas" min="1" value="1" oninput="updateRentalSummary()" class="quantity-input w-full rounded-xl border px-4 py-3">
-                                    </div>
-                                    <div class="col-span-1">
-                                        <button type="button" onclick="removeRentalItem(this)" class="h-12 w-full rounded-xl border border-red-200 text-red-500 hover:bg-red-50">×</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" onclick="addRentalItem()" class="mt-3 rounded-xl border border-dashed px-4 py-3 font-semibold text-[#12372A] hover:bg-[#F8F5EC]">+ Add Item</button>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold mb-2">Rental Date</label>
-                            <input id="offlineRentalDate" name="tanggalSewa" type="date" onchange="updateRentalSummary()" class="w-full rounded-xl border px-4 py-3">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-semibold mb-2">Return Date</label>
-                            <input id="offlineReturnDate" name="tanggalKembali" type="date" onchange="updateRentalSummary()" class="w-full rounded-xl border px-4 py-3">
-                        </div>
-
-                        <div class="md:col-span-2 rounded-xl bg-[#F8F5EC] p-4">
-                            <p class="text-sm text-gray-500">Rental Duration</p>
-                            <p id="rentalDurationText" class="font-bold text-[#12372A]">Select rental and return date</p>
-                        </div>
-                    </div>
-
-                    <div class="rounded-xl bg-purple-50 border border-purple-200 p-4">
-                        <p class="text-sm text-purple-700">This rental will be recorded as OFFLINE and stock will be updated immediately.</p>
-                    </div>
-
-                    <div class="rounded-xl bg-[#F8F5EC] p-5">
-                        <h3 class="font-bold mb-4">Rental Summary</h3>
-                        <p id="itemCountText" class="mb-3 text-sm text-gray-500">0 item(s) selected</p>
-                        <div id="summaryItems" class="space-y-2 text-sm"></div>
-                        <div class="mt-4 border-t pt-4 flex justify-between">
-                            <span class="font-bold">Total Rental</span>
-                            <span id="totalRental" class="font-bold text-xl text-[#F28C73]">Rp0</span>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end gap-3">
-                        <button type="button" onclick="closeOfflineRentalModal()" class="rounded-xl border px-5 py-3">Cancel</button>
-                        <button type="submit" class="rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold">Create Rental</button>
-                    </div>
-                </form>
-
-            </div>
-
-        </div>
-
-        <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-
-                    <thead class="bg-[#12372A] text-white">
-                    <tr>
-                        <th class="px-5 py-4 text-sm font-semibold">Transaction ID</th>
-                        <th class="px-5 py-4 text-sm font-semibold">Source</th>
-                        <th class="px-5 py-4 text-sm font-semibold">Customer</th>
-                        <th class="px-5 py-4 text-sm font-semibold">Rental Date</th>
-                        <th class="px-5 py-4 text-sm font-semibold">Return Date</th>
-                        <th class="px-5 py-4 text-sm font-semibold">Total</th>
-                        <th class="px-5 py-4 text-sm font-semibold">Status</th>
-                    </tr>
-                    </thead>
-
-                    <tbody class="divide-y divide-gray-100">
-
-                    <tr th:if="${#lists.isEmpty(listTransaksi)}">
-                        <td colspan="7" class="px-5 py-16">
-                            <div class="flex flex-col items-center justify-center text-center">
-                                <div class="text-6xl mb-4">📋</div>
-
-                                <h3 class="text-xl font-bold text-[#12372A]">
-                                    No Bookings Yet
-                                </h3>
-
-                                <p class="mt-2 text-sm text-gray-500 max-w-md">
-                                    Customer booking requests will appear here once customers start reserving equipment.
-                                </p>
-                            </div>
-                        </td>
-                    </tr>
-
-                    <tr onclick="openBookingDetailModal()"
-                        class="hover:bg-[#F8F5EC] transition cursor-pointer">
-
-                        <td class="px-5 py-4 font-semibold">
-                            #ON001
-                        </td>
-
-                        <td class="px-5 py-4">
-
-            <span class="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-                ONLINE
-            </span>
-
-                        </td>
-
-                        <td class="px-5 py-4">
-                            Amelia Putri
-                        </td>
-
-                        <td class="px-5 py-4">
-                            2026-05-29
-                        </td>
-
-                        <td class="px-5 py-4">
-                            2026-06-01
-                        </td>
-
-                        <td class="px-5 py-4 font-semibold">
-                            Rp250.000
-                        </td>
-
-                        <td class="px-5 py-4">
-
-            <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                DIPAKAI
-            </span>
-
-                        </td>
-
-                    </tr>
-
-                    <tr onclick="openOfflineDetailModal()"
-                        class="hover:bg-[#F8F5EC] transition cursor-pointer">
-
-                        <td class="px-5 py-4 font-semibold">
-                            #OFF001
-                        </td>
-
-                        <td class="px-5 py-4">
-
-            <span class="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
-                OFFLINE
-            </span>
-
-                        </td>
-
-                        <td class="px-5 py-4">
-                            Kevin Wijaya
-                        </td>
-
-                        <td class="px-5 py-4">
-                            2026-05-29
-                        </td>
-
-                        <td class="px-5 py-4">
-                            2026-05-31
-                        </td>
-
-                        <td class="px-5 py-4 font-semibold">
-                            Rp180.000
-                        </td>
-
-                        <td class="px-5 py-4">
-
-            <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                DIPAKAI
-            </span>
-
-                        </td>
-
-                    </tr>
-
-                    </tbody>
-
-                </table>
-            </div>
-        </section>
-
-        <div th:replace="~{fragments/footer :: footer}"></div>
-        <script th:inline="javascript">
-            /*<![CDATA[*/
-            // Kita petakan datanya secara manual agar menjadi array objek JS yang bersih
-            window.dataPeralatanToko = [
-                /*[# th:each="alat : ${listAlat}"]*/
-                {
-                    id: /*[[${alat.id}]]*/ 0,
-                    namaAlat: /*[[${alat.namaAlat}]]*/ '',
-                    hargaSewaPerHari: /*[[${alat.hargaSewaPerHari}]]*/ 0,
-                    stok: /*[[${alat.stok}]]*/ 0
-                },
-                /*[/]*/
-            ];
-            /*]]>*/
-        </script>
-
-    </main>
-
-    <!-- Booking Detail Modal -->
-    <div id="bookingDetailModal"
-         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
-
-
-
-        <div class="w-full max-w-2xl rounded-2xl bg-white shadow-xl max-h-[85vh] overflow-y-auto">
-
-            <div class="flex items-center justify-between bg-[#12372A] px-6 py-5 text-white">
-                <div>
-                    <h2 class="text-2xl font-bold">Booking Detail</h2>
-                    <p class="text-sm text-white/70">Review customer booking information</p>
-                </div>
-
-                <button type="button"
-                        onclick="closeBookingDetailModal()"
-                        class="text-3xl leading-none hover:text-[#F28C73]">
-                    ×
-                </button>
-            </div>
-
-            <div class="p-6 space-y-6">
-
-                <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-                    <div class="rounded-xl bg-[#F8F5EC] p-4">
-                        <p class="text-sm text-gray-500">Booking ID</p>
-                        <p class="font-bold text-lg">#ON001</p>
-                    </div>
-
-                    <div class="rounded-xl bg-[#F8F5EC] p-4">
-                        <p class="text-sm text-gray-500">Source</p>
-
-                        <span class="mt-1 inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-            ONLINE
-        </span>
-                    </div>
-
-                    <div class="rounded-xl bg-[#F8F5EC] p-4">
-                        <p class="text-sm text-gray-500">Customer</p>
-                        <p class="font-bold">Amelia Putri</p>
-                        <p class="text-sm text-gray-500">+62 819-1008-2006</p>
-                    </div>
-
-                    <div class="rounded-xl bg-[#F8F5EC] p-4">
-                        <p class="text-sm text-gray-500">Status</p>
-
-                        <span id="modalBookingStatus"
-                              class="mt-1 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-            DIPAKAI
-        </span>
-                    </div>
-
-                    <div class="rounded-xl bg-[#F8F5EC] p-4">
-                        <p class="text-sm text-gray-500">Pickup Deadline</p>
-
-                        <p class="font-bold text-red-600">
-                            2 hours after booking
-                        </p>
-                    </div>
-
-                    <div class="rounded-xl bg-[#F8F5EC] p-4">
-                        <p class="text-sm text-gray-500">Return Date</p>
-
-                        <p class="font-bold">
-                            2026-06-01
-                        </p>
-                    </div>
-
-                </section>
-
-                <section class="rounded-2xl border border-[#12372A]/10 overflow-hidden">
-                    <div class="bg-[#F8F5EC] px-5 py-4">
-                        <h3 class="font-bold">Booked Items</h3>
-                    </div>
-
-                    <div class="divide-y divide-gray-100">
-
-                        <div class="flex items-center justify-between px-5 py-4">
-                            <div>
-                                <p class="font-semibold">Tenda Dome Borneo 4</p>
-                                <p class="text-sm text-gray-500">Qty 1 × Rp 80.000/day</p>
-                            </div>
-                            <p class="font-semibold">Rp 80.000</p>
-                        </div>
-
-                        <div class="flex items-center justify-between px-5 py-4">
-                            <div>
-                                <p class="font-semibold">Carrier Eiger 60L</p>
-                                <p class="text-sm text-gray-500">Qty 1 × Rp 70.000/day</p>
-                            </div>
-                            <p class="font-semibold">Rp 70.000</p>
-                        </div>
-
-                    </div>
-
-                    <div class="flex items-center justify-between bg-[#F8F5EC] px-5 py-4">
-                        <p class="font-bold">Total Booking</p>
-                        <p class="text-xl font-bold text-[#F28C73]">Rp 250.000</p>
-                    </div>
-                </section>
-
-                <section class="rounded-xl border border-yellow-300 bg-yellow-50 p-4">
-                    <p class="text-sm text-yellow-800">
-                        ⚠ This application only handles booking. Payment is not processed inside the system.
-                    </p>
-                </section>
-
-                <section class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-
-                    <section class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
-
-                        <button type="button"
-                                onclick="closeBookingDetailModal()"
-                                class="rounded-xl border border-[#12372A]/20 px-5 py-3 font-semibold hover:bg-[#F8F5EC]">
-                            Close
-                        </button>
-
-                        <!-- Muncul hanya kalau status PENDING -->
-                        <button id="cancelBookingButton"
-                                type="button"
-                                class="rounded-xl bg-red-600 px-5 py-3 text-white font-semibold hover:bg-red-700">
-                            Cancel Booking
-                        </button>
-
-                        <!-- Untuk status PENDING -->
-                        <button id="markAsPickedUpButton"
-                                type="button"
-                                class="rounded-xl bg-green-600 px-5 py-3 text-white font-semibold hover:bg-green-700">
-                            Mark as Picked Up
-                        </button>
-
-                        <!-- Untuk status DIPAKAI -->
-                        <button id="markAsReturnedButton"
-                                type="button"
-                                class="hidden rounded-xl bg-green-600 px-5 py-3 text-white font-semibold hover:bg-green-700">
-                            Mark as Returned
-                        </button>
-                    </section>
-                </section>
-
-            </div>
-
-        </div>
-
+    </section>
+
+    <!-- ✅ BUTTON TO OPEN OFFLINE RENTAL FORM -->
+    <div class="mb-6">
+        <button type="button" onclick="openOfflineRentalModal()"
+                class="rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
+            + New Offline Rental
+        </button>
     </div>
 
-    <div id="offlineDetailModal"
-         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+    <!-- ✅ TRANSAKSI TABLE - DYNAMIC DATA FROM DATABASE -->
+    <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
 
-        <div class="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
+                <thead class="bg-[#12372A] text-white">
+                <tr>
+                    <th class="px-5 py-4 font-semibold">Transaction ID</th>
+                    <th class="px-5 py-4 font-semibold">Source</th>
+                    <th class="px-5 py-4 font-semibold">Customer</th>
+                    <th class="px-5 py-4 font-semibold">Rental Date</th>
+                    <th class="px-5 py-4 font-semibold">Return Date</th>
+                    <th class="px-5 py-4 font-semibold">Total</th>
+                    <th class="px-5 py-4 font-semibold">Status</th>
+                    <th class="px-5 py-4 font-semibold text-right">Action</th>
+                </tr>
+                </thead>
 
-            <div class="bg-[#12372A] px-6 py-5 text-white flex justify-between">
+                <tbody class="divide-y divide-gray-100">
 
-                <div>
+                <!-- ✅ JIKA TIDAK ADA TRANSAKSI -->
+                <tr th:if="${#lists.isEmpty(listTransaksi)}">
+                    <td colspan="8" class="px-5 py-16">
+                        <div class="flex flex-col items-center justify-center text-center">
+                            <div class="text-6xl mb-4">📋</div>
+                            <h3 class="text-xl font-bold text-[#12372A]">No Transactions Yet</h3>
+                            <p class="mt-2 text-sm text-gray-500 max-w-md">
+                                Customer booking requests and offline rentals will appear here.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
 
-                    <h2 class="text-2xl font-bold">
-                        Rental Detail
-                    </h2>
+                <!-- ✅ LOOP TRANSAKSI DARI DATABASE -->
+                <tr th:each="transaksi : ${listTransaksi}" class="hover:bg-[#F8F5EC] transition cursor-pointer"
+                    th:onclick="openDetailModal([[${transaksi.id}]], [[${transaksi.source}]])">
 
-                    <p class="text-sm text-white/70">
-                        Offline Rental Transaction
-                    </p>
-
-                </div>
-
-                <button onclick="closeOfflineDetailModal()"
-                        class="text-3xl">
-                    ×
-                </button>
-
-            </div>
-
-            <div class="p-6 space-y-5">
-
-                <div class="grid md:grid-cols-2 gap-4">
-
-                    <div>
-                        <p class="text-sm text-gray-500">
-                            Transaction ID
-                        </p>
-
-                        <p class="font-bold">
-                            #OFF001
-                        </p>
-                    </div>
-
-                    <div>
-                        <p class="text-sm text-gray-500">
-                            Source
-                        </p>
-
-                        <span class="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700">
-                            OFFLINE
+                    <td class="px-5 py-4 font-semibold">
+                        <!-- Format ID sesuai source: ONLINE (#ON001) atau OFFLINE (#OFF001) -->
+                        <span th:text="${transaksi.source == 'ONLINE'} ? '#ON' + ${transaksi.id} : '#OFF' + ${transaksi.id}">
+                            #--
                         </span>
-                    </div>
+                    </td>
 
-                    <div>
-                        <p class="text-sm text-gray-500">
-                            Customer
-                        </p>
+                    <td class="px-5 py-4">
+                        <span th:classappend="${transaksi.source == 'ONLINE'} ? ' bg-blue-100 text-blue-700' : ' bg-purple-100 text-purple-700'"
+                              class="rounded-full px-3 py-1 text-xs font-semibold">
+                            <span th:text="${transaksi.source}">ONLINE</span>
+                        </span>
+                    </td>
 
-                        <p class="font-bold">
-                            Kevin Wijaya
-                        </p>
-                    </div>
+                    <!-- ✅ CUSTOMER NAME (Online: dari Customer, Offline: dari namaCustomer) -->
+                    <td class="px-5 py-4">
+                        <span th:if="${transaksi.source == 'ONLINE'}"
+                              th:text="${transaksi.customer?.namaLengkap ?: 'Unknown'}">
+                            Customer Name
+                        </span>
+                        <span th:if="${transaksi.source == 'OFFLINE'}"
+                              th:text="${transaksi.namaCustomer}">
+                            Customer Name
+                        </span>
+                    </td>
 
-                    <div>
-                        <p class="text-sm text-gray-500">
-                            Phone Number
-                        </p>
+                    <td class="px-5 py-4" th:text="${#temporals.format(transaksi.tanggalSewa, 'yyyy-MM-dd')}">
+                        2026-05-29
+                    </td>
 
-                        <p class="font-bold">
-                            0813-2222-1111
-                        </p>
-                    </div>
+                    <td class="px-5 py-4" th:text="${#temporals.format(transaksi.tanggalKembali, 'yyyy-MM-dd')}">
+                        2026-06-01
+                    </td>
 
-                    <div>
-                        <p class="text-sm text-gray-500">
-                            Rental Date
-                        </p>
+                    <td class="px-5 py-4 font-semibold">
+                        <span th:text="'Rp' + ${#numbers.formatDecimal(transaksi.totalHarga, 0, 'COMMA', 0, 'POINT')}">
+                            Rp0
+                        </span>
+                    </td>
 
-                        <p class="font-bold">
-                            2026-05-29
-                        </p>
-                    </div>
+                    <td class="px-5 py-4">
+                        <span th:classappend="${transaksi.statusTransaksi == 'TERLAMBAT'} ? ' bg-red-100 text-red-700' : ' bg-green-100 text-green-700'"
+                              class="rounded-full px-3 py-1 text-xs font-semibold">
+                            <span th:text="${transaksi.statusTransaksi}">DIPAKAI</span>
+                        </span>
+                    </td>
 
-                    <div>
-                        <p class="text-sm text-gray-500">
-                            Return Date
-                        </p>
+                    <td class="px-5 py-4 text-right">
+                        <button type="button" class="text-blue-600 font-semibold hover:underline">
+                            View Details
+                        </button>
+                    </td>
 
-                        <p class="font-bold">
-                            2026-05-31
-                        </p>
-                    </div>
+                </tr>
 
-                </div>
-
-                <div class="rounded-xl bg-[#F8F5EC] p-4">
-
-                    <h3 class="font-bold mb-3">
-                        Rental Items
-                    </h3>
-
-                    <p>Tenda Dome Borneo 4 × 2</p>
-                    <p>Carrier Eiger 60L × 1</p>
-
-                </div>
-
-                <div class="flex justify-between items-center">
-
-                    <p class="font-bold">
-                        Total Rental
-                    </p>
-
-                    <p class="text-xl font-bold text-[#F28C73]">
-                        Rp180.000
-                    </p>
-
-                </div>
-
-                <div class="flex justify-end gap-3">
-
-                    <button onclick="closeOfflineDetailModal()"
-                            class="rounded-xl border px-5 py-3">
-                        Close
-                    </button>
-
-                    <button class="rounded-xl bg-green-600 px-5 py-3 text-white font-semibold">
-                        Mark as Returned
-                    </button>
-
-                </div>
-
-            </div>
-
+                </tbody>
+            </table>
         </div>
+    </section>
 
-    </div>
+    <div th:replace="~{fragments/footer :: footer}"></div>
 
+</main>
 
+<!-- ✅ IMPORT FRAGMENTS (Modal & Form) -->
+<div th:replace="~{fragments/offline-rental-modal :: offlineRentalModal}"></div>
+<div th:replace="~{fragments/booking-detail-modal :: bookingDetailModal}"></div>
+<div th:replace="~{fragments/offline-detail-modal :: offlineDetailModal}"></div>
 
-    <script th:src="@{/js/main.js}"></script>
+<!-- ✅ SCRIPT: Inject Data Thymeleaf ke JavaScript -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    // ✅ DATA PERALATAN: Dari Controller ke JavaScript untuk dropdown
+    window.dataPeralatanToko = [
+        /*[# th:each="alat : ${listAlat}"]*/
+        {
+            id: /*[[${alat.id}]]*/ 0,
+            namaAlat: /*[[${alat.namaAlat}]]*/ '',
+            hargaSewaPerHari: /*[[${alat.hargaSewaPerHari}]]*/ 0,
+            stok: /*[[${alat.stok}]]*/ 0
+        }/*[# th:if="${!#lists.isLast(alat)}"]*/,/*[/]*/
+        /*[/]*/
+    ].filter(item => item.id !== 0); // Filter out any empty placeholder
 
-    </body>
-    </html>
+    console.log("Data Peralatan Loaded:", window.dataPeralatanToko); // DEBUG
+
+    // ✅ DATA TRANSAKSI: Untuk populate modal saat diklik
+    window.dataTransaksi = [
+        /*[# th:each="transaksi : ${listTransaksi}"]*/
+        {
+            id: /*[[${transaksi.id}]]*/ 0,
+            source: /*[[${transaksi.source}]]*/ '',
+            status: /*[[${transaksi.statusTransaksi}]]*/ '',
+            namaCustomer: /*[[${transaksi.namaCustomer ?: (transaksi.customer?.namaLengkap ?: '')}]]*/ '',
+            noHp: /*[[${transaksi.noHpCustomer ?: (transaksi.customer?.nomorTelepon ?: '')}]]*/ '',
+            tanggalSewa: /*[[${transaksi.tanggalSewa}]]*/ '',
+            tanggalKembali: /*[[${transaksi.tanggalKembali}]]*/ '',
+            totalHarga: /*[[${transaksi.totalHarga}]]*/ 0
+        }/*[# th:if="${!#lists.isLast(transaksi)}"]*/,/*[/]*/
+        /*[/]*/
+    ].filter(item => item.id !== 0);
+
+    console.log("Data Transaksi Loaded:", window.dataTransaksi); // DEBUG
+    /*]]>*/
+</script>
+
+<script th:src="@{/js/main.js}"></script>
+
+<!-- ✅ HELPER FUNCTION: Buka modal detail sesuai source -->
+<script>
+    function openDetailModal(transaksiId, source) {
+        const transaksi = window.dataTransaksi.find(t => t.id === transaksiId);
+
+        if (!transaksi) {
+            console.error("Transaksi tidak ditemukan:", transaksiId);
+            return;
+        }
+
+        if (source === 'ONLINE') {
+            // Populate Online Booking Modal
+            document.getElementById("modalBookingId").innerText = "#ON" + transaksi.id;
+            document.getElementById("modalCustomerName").innerText = transaksi.namaCustomer;
+            document.getElementById("modalCustomerPhone").innerText = transaksi.noHp;
+            document.getElementById("modalRentalDate").innerText = transaksi.tanggalSewa;
+            document.getElementById("modalReturnDate").innerText = transaksi.tanggalKembali;
+            document.getElementById("modalTotalPrice").innerText = "Rp" + transaksi.totalHarga.toLocaleString("id-ID");
+
+            // Set status badge
+            const statusBadge = document.getElementById("modalBookingStatus");
+            statusBadge.innerText = transaksi.status;
+            statusBadge.className = transaksi.status === 'TERLAMBAT' ?
+                "mt-1 inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700" :
+                "mt-1 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700";
+
+            openBookingDetailModal();
+        } else {
+            // Populate Offline Rental Modal
+            document.getElementById("modalOfflineId").innerText = "#OFF" + transaksi.id;
+            document.getElementById("modalOfflineCustomerName").innerText = transaksi.namaCustomer;
+            document.getElementById("modalOfflineCustomerPhone").innerText = transaksi.noHp;
+            document.getElementById("modalOfflineRentalDate").innerText = transaksi.tanggalSewa;
+            document.getElementById("modalOfflineReturnDate").innerText = transaksi.tanggalKembali;
+            document.getElementById("modalOfflineTotalPrice").innerText = "Rp" + transaksi.totalHarga.toLocaleString("id-ID");
+
+            const statusBadge = document.getElementById("modalOfflineStatus");
+            statusBadge.innerText = transaksi.status;
+            statusBadge.className = transaksi.status === 'TERLAMBAT' ?
+                "mt-1 inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700" :
+                "mt-1 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700";
+
+            openOfflineDetailModal();
+        }
+    }
+</script>
+
+</body>
+</html>

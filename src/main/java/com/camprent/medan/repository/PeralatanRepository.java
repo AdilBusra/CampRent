@@ -9,9 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface
-
-PeralatanRepository extends JpaRepository<Peralatan, Long> {
+public interface PeralatanRepository extends JpaRepository<Peralatan, Long> {
 
     // === FITUR UNTUK SISI STORE (Bawaan Kawanmu - JANGAN DIHAPUS) ===
     List<Peralatan> findByStore(Store store);
@@ -32,4 +30,14 @@ PeralatanRepository extends JpaRepository<Peralatan, Long> {
     List<Peralatan> findByNamaAlatContainingIgnoreCaseAndStokGreaterThanOrMerekContainingIgnoreCaseAndStokGreaterThan(
             String namaKeyword, Integer stokNama, String merekKeyword, Integer stokMerek
     );
+
+    // === FITUR FILTER UNTUK SISI STORE ===
+    // Pencarian berdasarkan kata kunci DAN kategori untuk store tertentu
+    List<Peralatan> findByStoreAndNamaAlatContainingIgnoreCaseAndKategoriId(Store store, String namaAlat, Long kategoriId);
+
+    // Pencarian hanya berdasarkan kata kunci untuk store tertentu (jika kategori dikosongkan)
+    List<Peralatan> findByStoreAndNamaAlatContainingIgnoreCase(Store store, String namaAlat);
+
+    // Pencarian hanya berdasarkan kategori untuk store tertentu (jika kata kunci dikosongkan)
+    List<Peralatan> findByStoreAndKategoriId(Store store, Long kategoriId);
 }

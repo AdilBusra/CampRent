@@ -40,34 +40,25 @@ function openOfflineRentalModal() {
 
     if (!modal) return;
 
-    // 1. Isi dropdown secara dinamis dari data global Thymeleaf jika elemen select-nya ada
     if (selectElement) {
-        // Kembalikan ke opsi default awal
         selectElement.innerHTML = '<option value="" disabled selected>-- Pilih Alat Camping --</option>';
 
-        // Ambil data dari window.dataPeralatanToko yang kita siapkan di HTML tadi
         const listAlat = window.dataPeralatanToko || [];
 
-        // Looping untuk memasukkan option secara dinamis beserta data-attribute-nya
         listAlat.forEach(alat => {
             const opt = document.createElement("option");
             opt.value = alat.id;
             opt.text = `${alat.namaAlat} (Stock: ${alat.stok})`;
-
-            // Set atribut data-* agar logika updateRentalSummary() tidak rusak
             opt.setAttribute("data-price", alat.hargaSewaPerHari);
             opt.setAttribute("data-name", alat.namaAlat);
             opt.setAttribute("data-stock", alat.stok);
-
             selectElement.appendChild(opt);
         });
     }
 
-    // 2. Tampilkan modal popup
     modal.classList.remove("hidden");
     modal.classList.add("flex");
 
-    // Reset ulang hitungan summary ke Rp0
     updateRentalSummary();
 }
 

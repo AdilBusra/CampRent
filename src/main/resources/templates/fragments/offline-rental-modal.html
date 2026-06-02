@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="id">
+<head><title></title></head>
+<body>
+
+<div th:fragment="offlineRentalModal">
+
+    <div id="offlineRentalModal"
+         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+
+        <div class="w-full max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
+
+            <div class="bg-[#12372A] px-6 py-5 text-white">
+                <h2 class="text-2xl font-bold">New Offline Rental</h2>
+                <p class="text-sm text-white/70">Create walk-in customer rental</p>
+            </div>
+
+            <form th:action="@{/store/transaksi/save-offline}" method="POST" class="p-6 space-y-5">
+
+                <div class="grid md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Customer Name</label>
+                        <input type="text" name="customerName" required
+                               placeholder="Nama customer"
+                               class="w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Phone Number</label>
+                        <input type="text" name="phoneNumber" required
+                               placeholder="081x xxxx xxxx"
+                               class="w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Rental Date</label>
+                        <input id="offlineRentalDate" name="tanggalSewa" type="date"
+                               onchange="updateRentalSummary()" required
+                               class="w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-2">Return Date</label>
+                        <input id="offlineReturnDate" name="tanggalKembali" type="date"
+                               onchange="updateRentalSummary()" required
+                               class="w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                    </div>
+
+                    <div class="md:col-span-2 rounded-xl bg-[#F8F5EC] p-4">
+                        <p class="text-sm text-gray-500">Rental Duration</p>
+                        <p id="rentalDurationText" class="font-bold text-[#12372A]">Select rental and return date</p>
+                    </div>
+                </div>
+
+                <!-- ✅ RENTAL ITEMS SECTION - Data from Controller -->
+                <div>
+                    <label class="block text-sm font-semibold mb-3">Rental Items</label>
+                    <div id="rentalItemsContainer" class="space-y-3">
+                        <div class="rental-item grid grid-cols-12 gap-3">
+                            <div class="col-span-8">
+                                <!-- ✅ DROPDOWN SEKARANG POPULATED dari window.dataPeralatanToko -->
+                                <select id="modalPeralatanSelect" name="peralatanIds"
+                                        class="equipment-select w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]"
+                                        onchange="updateRentalSummary()" required>
+                                    <option value="" disabled selected>-- Pilih Alat Camping --</option>
+                                </select>
+                            </div>
+                            <div class="col-span-3">
+                                <input type="number" name="kuantitas" min="1" value="1"
+                                       oninput="updateRentalSummary()"
+                                       class="quantity-input w-full rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#F28C73]">
+                            </div>
+                            <div class="col-span-1">
+                                <button type="button" onclick="removeRentalItem(this)"
+                                        class="h-12 w-full rounded-xl border border-red-200 text-red-500 hover:bg-red-50 transition">×</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="addRentalItem()"
+                            class="mt-3 rounded-xl border border-dashed px-4 py-3 font-semibold text-[#12372A] hover:bg-[#F8F5EC] transition">
+                        + Add Item
+                    </button>
+                </div>
+
+                <!-- ✅ INFO BOX -->
+                <div class="rounded-xl bg-purple-50 border border-purple-200 p-4">
+                    <p class="text-sm text-purple-700">
+                        ℹ️ This rental will be recorded as OFFLINE and stock will be updated immediately.
+                    </p>
+                </div>
+
+                <!-- ✅ SUMMARY SECTION -->
+                <div class="rounded-xl bg-[#F8F5EC] p-5">
+                    <h3 class="font-bold mb-4">Rental Summary</h3>
+                    <p id="itemCountText" class="mb-3 text-sm text-gray-500">0 item(s) selected</p>
+                    <div id="summaryItems" class="space-y-2 text-sm"></div>
+                    <div class="mt-4 border-t pt-4 flex justify-between">
+                        <span class="font-bold">Total Rental</span>
+                        <span id="totalRental" class="font-bold text-xl text-[#F28C73]">Rp0</span>
+                    </div>
+                </div>
+
+                <!-- ✅ ACTION BUTTONS -->
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeOfflineRentalModal()"
+                            class="rounded-xl border px-5 py-3 font-semibold hover:bg-[#F8F5EC] transition">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
+                        Create Rental
+                    </button>
+                </div>
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
