@@ -6,12 +6,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-[#F8F5EC] text-[#12372A]">
+<body class="bg-[#F8F5EC] text-[#12372A] min-h-screen flex flex-col">
 
 <div th:replace="~{fragments/store-sidebar :: storeSidebar('add-equipment')}"></div>
-<div th:replace="~{fragments/navbar :: navbar('Equipment Form')}"></div>
+<div th:replace="~{fragments/navbar :: navbar('Add New Equipment')}"></div>
 
-<main class="min-h-screen lg:ml-64 p-6">
+<main class="flex-1 lg:ml-64 p-6">
 
     <section class="mb-8">
         <a th:href="@{/store/equipment}"
@@ -20,8 +20,8 @@
         </a>
 
         <h1 class="text-3xl font-bold mt-4"
-            th:text="${peralatan.id != null} ? 'Edit Equipment' : 'Add New Equipment'">
-            Add New Equipment
+            th:text="${peralatan.id != null} ? 'Edit Equipment' : 'Equipment Form'">
+            Equipment Form
         </h1>
 
         <p class="text-sm text-[#12372A]/70 mt-1">
@@ -227,7 +227,7 @@
 
                         <button type="button"
                                 class="rounded-xl bg-[#12372A] px-4 py-2 text-sm font-semibold text-white">
-                            Book Now
+                            Add Cart
                         </button>
                     </div>
 
@@ -237,9 +237,11 @@
 
     </section>
 
-    <div th:replace="~{fragments/footer :: footer}"></div>
 
 </main>
+<div class="lg:pl-64 mt-auto">
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</div>
 
 <script th:src="@{/js/main.js}"></script>
 
