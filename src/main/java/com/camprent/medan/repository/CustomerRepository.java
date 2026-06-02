@@ -8,6 +8,7 @@ import java.util.Optional;
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
+
     // Fungsi vital: Mencari profil Customer berdasarkan username akun Login-nya
     Optional<Customer> findByUserUsername(String username);
 }

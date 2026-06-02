@@ -1,5 +1,6 @@
 package com.camprent.medan.controller;
 
+import com.camprent.medan.entity.KeranjangItem;
 import com.camprent.medan.entity.Peralatan;
 import com.camprent.medan.entity.Customer; // Import Customer
 import com.camprent.medan.service.CustomerService;
@@ -7,11 +8,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal; // Untuk mendeteksi user login
 import java.util.List;
@@ -93,9 +90,43 @@ public class CustomerController {
         return "customer/equipment-detail";
     }
 
+    // Tampilkan Halaman Cart secara Dinamis
     @GetMapping("/cart")
-    public String customerCart() {
+    public String customerCart(Model model, Principal principal) {
+        String username = (principal != null) ? principal.getName() : "amelia";
+
+        List<KeranjangItem> listKeranjang = customerService.getKeranjangCustomer(username);
+        model.addAttribute("listKeranjang", listKeranjang);
+
         return "customer/cart";
+    }
+
+    // Tambah Item ke Keranjang via AJAX (Tanpa Redirect)
+    @PostMapping("/cart/add")
+    @ResponseBody // <-- Tambahkan ini agar mengembalikan data/status, bukan nyari file HTML
+    public org.springframework.http.ResponseEntity<String> tambahItem(@RequestParam("peralatanId") Long peralatanId, Principal principal) {
+        String username = (principal != null) ? principal.getName() : "amelia";
+        try {
+            customerService.tambahKeKeranjang(username, peralatanId);
+            return org.springframework.http.ResponseEntity.ok("Berhasil menambahkan ke keranjang!");
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.status(500).body("Gagal: " + e.getMessage());
+        }
+    }
+
+    // Hapus Item dari Keranjang
+    @PostMapping("/cart/delete/{id}")
+    public String hapusItem(@PathVariable Long id) {
+        customerService.hapusDariKeranjang(id);
+        return "redirect:/customer/cart";
+    }
+
+    // Update Jumlah Kuantitas
+    @PostMapping("/cart/update/{id}")
+    public String updateKuantitas(@PathVariable Long id, @RequestParam("aksi") String aksi) {
+        int jumlah = aksi.equals("tambah") ? 1 : -1;
+        customerService.updateKuantitas(id, jumlah);
+        return "redirect:/customer/cart";
     }
 
     @GetMapping("/my-booking")
@@ -139,6 +170,19 @@ public class CustomerController {
 
         // Setelah sukses save, redirect kembali ke halaman profile agar datanya langsung ter-refresh
         return "redirect:/customer/profile";
+    }
+
+    // Shortcut Book Now: Tambah ke keranjang lalu langsung arahkan ke halaman cart
+    @GetMapping("/booking/{id}")
+    public String instantBooking(@PathVariable("id") Long id, Principal principal) {
+        // 1. Deteksi username customer yang sedang login
+        String username = (principal != null) ? principal.getName() : "amelia";
+
+        // 2. Manfaatkan fungsi tambah ke keranjang yang sudah kita buat di CustomerService kemarin
+        customerService.tambahKeKeranjang(username, id);
+
+        // 3. Setelah sukses masuk ke database keranjang, langsung lempar user ke halaman cart
+        return "redirect:/customer/cart";
     }
 
     @PostMapping("/logout")

@@ -1,8 +1,10 @@
 package com.camprent.medan.service;
 
+import com.camprent.medan.entity.KeranjangItem;
 import com.camprent.medan.entity.Peralatan;
 import com.camprent.medan.entity.Kategori;
 import com.camprent.medan.entity.Customer; // Import entity Customer
+import com.camprent.medan.repository.KeranjangRepository;
 import com.camprent.medan.repository.PeralatanRepository;
 import com.camprent.medan.repository.CustomerRepository; // Import repository Customer
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,8 @@ public class CustomerService {
     @Autowired
     private CustomerRepository customerRepository; // Tambahkan ini
 
+    @Autowired
+    private KeranjangRepository keranjangRepository;
     /**
      * Mengambil data lengkap Customer berdasarkan username akun login.
      */
@@ -68,6 +72,44 @@ public class CustomerService {
 
             // 3. Simpan perubahan ke database
             customerRepository.save(customer);
+        }
+    }
+
+    public List<KeranjangItem> getKeranjangCustomer(String username) {
+        Customer customer = getProfileByUsername(username);
+        return keranjangRepository.findByCustomer(customer);
+    }
+
+    public void tambahKeKeranjang(String username, Long peralatanId) {
+        Customer customer = getProfileByUsername(username);
+        Peralatan peralatan = peralatanRepository.findById(peralatanId)
+                .orElseThrow(() -> new RuntimeException("Alat tidak ditemukan"));
+
+        // Cek apakah barang sudah ada di keranjang, jika ada tinggal tambah kuantitas
+        Optional<KeranjangItem> existingItem = keranjangRepository.findByCustomerAndPeralatan(customer, peralatan);
+
+        if (existingItem.isPresent()) {
+            KeranjangItem item = existingItem.get();
+            item.setKuantitas(item.getKuantitas() + 1);
+            keranjangRepository.save(item);
+        } else {
+            KeranjangItem item = new KeranjangItem();
+            item.setCustomer(customer);
+            item.setPeralatan(peralatan);
+            item.setKuantitas(1);
+            keranjangRepository.save(item);
+        }
+    }
+
+    public void hapusDariKeranjang(Long itemId) {
+        keranjangRepository.deleteById(itemId);
+    }
+
+    public void updateKuantitas(Long itemId, int jumlah) {
+        KeranjangItem item = keranjangRepository.findById(itemId).orElse(null);
+        if (item != null) {
+            item.setKuantitas(Math.max(1, item.getKuantitas() + jumlah));
+            keranjangRepository.save(item);
         }
     }
 }
