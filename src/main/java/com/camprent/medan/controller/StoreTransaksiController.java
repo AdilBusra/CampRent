@@ -83,7 +83,7 @@ public class StoreTransaksiController {
         System.out.println("DEBUG LIST ALAT = " + alatList);
         System.out.println("DEBUG LIST TRANSAKSI = " + transaksiList);
 
-// Set model
+        // Set model
         model.addAttribute("listAlat", alatList);
         model.addAttribute("listTransaksi", transaksiList);
         model.addAttribute("store", store);
@@ -106,7 +106,7 @@ public class StoreTransaksiController {
         }
         System.out.println("======================");
 
-        return "store/transaction-list";
+        return "store/transaksi-list";
     }
 
     // Aksi ketika klik tombol "Serahkan Barang" (Ubah ke DIPAKAI)
@@ -136,6 +136,13 @@ public class StoreTransaksiController {
         storeTransaksiService.createOfflineRental(principal.getName(), customerName,
                 phoneNumber, tanggalSewa, tanggalKembali, peralatanIds, kuantitas);
 
+        return "redirect:/store/transaksi";
+    }
+
+    // 🌟 BARU: Mengalihkan URL /store/transactions yang typo ke /store/transaksi yang benar
+    @GetMapping("/store/transaksi")
+    public String alihkanTransactionsYangSalah() {
+        System.out.println("🔄 Log: Ada akses ke /store/transactions, berhasil dialihkan ke /store/transaksi");
         return "redirect:/store/transaksi";
     }
 }
