@@ -119,82 +119,83 @@
 
 <script th:src="@{/js/main.js}"></script>
 
+<!-- Tambahkan attribute id="editProfileModal" dan pastikan class default-nya ada flex/hidden sesuai state -->
 <div id="editProfileModal"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50">
 
-    <div class="w-full max-w-xl rounded-2xl bg-white p-6">
+    <!-- Bungkus konten dengan tag FORM menuju ke backend -->
+    <form th:action="@{/store/profile/update}" th:object="${store}" method="POST"
+          class="w-full max-w-xl rounded-2xl bg-white p-6 m-4">
+
+        <!-- Hidden input untuk id toko supaya Spring tahu data mana yang di-update -->
+        <input type="hidden" th:field="*{id}">
 
         <h2 class="text-2xl font-bold mb-5">
             Edit Store Profile
         </h2>
 
-        <div>
-
-            <label class="block text-sm font-semibold mb-2">
-                Store Logo
-            </label>
-
-            <div class="flex items-center gap-4">
-
-                <div class="w-20 h-20 rounded-full bg-[#12372A] flex items-center justify-center text-white text-2xl font-bold">
-                    S
-                </div>
-
-                <label class="cursor-pointer rounded-xl border px-4 py-3 hover:bg-[#F8F5EC]">
-                    Change Photo
-
-                    <input type="file"
-                           accept="image/*"
-                           class="hidden">
-                </label>
-
-            </div>
-
-        </div>
+        <!-- Catatan: Untuk input gambar/logo, jika ingin diimplementasikan nanti, form harus ditambah enctype="multipart/form-data" -->
 
         <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold mb-1 text-gray-500">Store Name</label>
+                <input type="text"
+                       th:field="*{namaToko}"
+                       class="w-full rounded-xl border p-3 focus:outline-none focus:border-[#12372A]" required>
+            </div>
 
-            <input type="text"
-                   value="Mountain Adventure"
-                   class="w-full rounded-xl border p-3">
+            <div>
+                <label class="block text-sm font-semibold mb-1 text-gray-500">Phone Number</label>
+                <input type="text"
+                       th:field="*{nomorTelepon}"
+                       class="w-full rounded-xl border p-3 focus:outline-none focus:border-[#12372A]" required>
+            </div>
 
-
-            <input type="email"
-                   value="store@camprent.com"
-                   class="w-full rounded-xl border p-3">
-
-
-            <input type="text"
-                   value="0812-3456-7890"
-                   class="w-full rounded-xl border p-3">
-
-            <textarea
-                    class="w-full rounded-xl border p-3"
-                    rows="4">Jl. Setia Budi, Medan</textarea>
-
-            <textarea
-                    rows="4"
-                    class="w-full rounded-xl border p-3"
-                    placeholder="Describe your store..."></textarea>
-
+            <div>
+                <label class="block text-sm font-semibold mb-1 text-gray-500">Address</label>
+                <textarea
+                        th:field="*{alamat}"
+                        class="w-full rounded-xl border p-3 focus:outline-none focus:border-[#12372A]"
+                        rows="3" required></textarea>
+            </div>
         </div>
 
         <div class="mt-6 flex justify-end gap-3">
-
-            <button onclick="closeEditProfileModal()"
-                    class="rounded-xl border px-5 py-3">
+            <!-- Tambahkan type="button" agar tidak men-submit form saat klik cancel -->
+            <button type="button" onclick="closeEditProfileModal()"
+                    class="rounded-xl border px-5 py-3 hover:bg-gray-100 transition">
                 Cancel
             </button>
 
-            <button
-                    class="rounded-xl bg-[#F28C73] px-5 py-3 text-white">
-                Save
+            <button type="submit"
+                    class="rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
+                Save Changes
             </button>
-
         </div>
-
-    </div>
+    </form>
 </div>
+
+<script>
+    function openEditProfileModal() {
+        const modal = document.getElementById('editProfileModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeEditProfileModal() {
+        const modal = document.getElementById('editProfileModal');
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+    }
+
+    // Optional: Menutup modal ketika user klik area luar modal
+    window.onclick = function(event) {
+        const modal = document.getElementById('editProfileModal');
+        if (event.target == modal) {
+            closeEditProfileModal();
+        }
+    }
+</script>
 
 </body>
 </html>
