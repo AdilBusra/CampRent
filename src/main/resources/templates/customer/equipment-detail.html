@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Equipment Detail - CampRent</title>
+  <title th:text="${peralatan.namaAlat} + ' - CampRent'">Equipment Detail - CampRent</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -11,116 +11,127 @@
 <div th:replace="~{fragments/customer-navbar :: customerNavbar('catalog')}"></div>
 
 <main class="pt-24 min-h-screen">
-
   <section class="max-w-7xl mx-auto px-8 pb-16">
 
-    <a th:href="@{/customer/katalog}"
-       class="text-sm font-semibold text-[#E27252] hover:underline">
+    <a th:href="@{/customer/katalog}" class="text-sm font-semibold text-[#E27252] hover:underline">
       ← Back to Catalog
     </a>
 
     <div class="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-10">
 
-      <div class="bg-[#EAE5D8] rounded-3xl h-[520px] flex items-center justify-center shadow-sm">
-        <div class="text-9xl">🏕️</div>
+      <div class="bg-[#EAE5D8] rounded-3xl h-[540px] flex items-center justify-center shadow-sm overflow-hidden">
+        <img th:if="${peralatan.fotoPeralatan != null}"
+             th:src="@{'/uploads/peralatan/' + ${peralatan.fotoPeralatan}}"
+             alt="Equipment Photo"
+             class="w-full h-full object-cover">
+        <div th:if="${peralatan.fotoPeralatan == null}" class="text-9xl">🏕️</div>
       </div>
 
-      <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
+      <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8 flex flex-col justify-between min-h-[540px]">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="rounded-full bg-[#E27252]/10 px-3 py-1 text-xs font-bold text-[#E27252]"
+                  th:text="${peralatan.kategori != null ? peralatan.kategori.namaKategori : 'General'}">CATEGORY</span>
 
-        <div class="flex items-center justify-between">
-                    <span class="rounded-full bg-[#E27252]/10 px-4 py-2 text-xs font-bold text-[#E27252]">
-                        TENT
-                    </span>
-
-          <span class="rounded-full bg-green-100 px-4 py-2 text-xs font-bold text-green-700">
-                        Stock 5
-                    </span>
-        </div>
-
-        <h1 class="mt-6 text-4xl font-bold text-[#19381C]">
-          Tent Dome Borneo 4
-        </h1>
-
-        <p class="mt-2 text-gray-500">
-          Brand: Eiger
-        </p>
-
-        <div class="mt-5 flex items-center gap-3">
-          <div class="w-11 h-11 rounded-full bg-[#19381C] text-white flex items-center justify-center font-bold">
-            S
+            <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+              Stock <span th:text="${peralatan.stok}">0</span>
+            </span>
           </div>
 
-          <div>
-            <p class="text-xs text-gray-500">Rental Store</p>
-            <a th:href="@{/customer/store/1}"
-               class="font-bold text-[#19381C] hover:text-[#E27252]">
-              Mountain Adventure
+          <h1 class="text-3xl font-bold text-[#19381C] mt-4" th:text="${peralatan.namaAlat}">Nama Alat</h1>
+          <p class="text-base text-gray-500 mt-1" th:text="'Merek: ' + ${peralatan.merek}">Merek</p>
+
+          <a th:href="@{/customer/store/detail/{id}(id=${peralatan.store.id})}"
+             class="mt-5 flex items-center gap-3 bg-[#F8F5EC] p-3 rounded-2xl border border-gray-100 hover:bg-[#F2EDE0] transition duration-200 block"
+             th:if="${peralatan.store != null}">
+
+            <div class="w-10 h-10 rounded-full bg-[#12372A] text-white flex items-center justify-center text-sm font-bold shadow-sm"
+                 th:text="${#strings.substring(peralatan.store.namaToko, 0, 1)}">M</div>
+            <div>
+              <p class="text-[10px] text-gray-400 font-medium uppercase tracking-wider">Rental Store (Click to Visit) ↗</p>
+              <h3 class="font-bold text-sm text-[#12372A]" th:text="${peralatan.store.namaToko}">Nama Toko Partner</h3>
+            </div>
+          </a>
+
+          <div class="mt-5">
+            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Description</h4>
+            <p class="mt-1 text-sm text-gray-600 leading-relaxed whitespace-pre-line max-h-[160px] overflow-y-auto pr-2" th:text="${peralatan.deskripsi}">
+              Peralatan ini tersedia untuk disewa harian...
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6 border-t pt-5">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-sm font-medium text-gray-500">Price per day</span>
+            <p class="text-3xl font-extrabold text-[#E27252]">
+              Rp <span th:text="${#numbers.formatDecimal(peralatan.hargaSewaPerHari, 0, 'POINT', 0, 'COMMA')}">0</span>
+            </p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <form th:onsubmit="tambahKeKeranjangAJAX(event, [[${peralatan.id}]])" class="w-full">
+              <button type="submit"
+                      class="w-full rounded-xl border border-[#19381C]/20 px-5 py-4 font-semibold hover:bg-[#F4F4F2] transition duration-200 text-sm">
+                Add to Cart
+              </button>
+            </form>
+
+            <a th:href="@{/customer/booking/{id}(id=${peralatan.id})}"
+               class="rounded-xl bg-[#F28C73] px-5 py-4 text-center text-white font-semibold hover:bg-[#e17860] transition duration-200 text-sm grid items-center">
+              Book Now
             </a>
           </div>
         </div>
 
-        <p class="mt-6 text-gray-600 leading-relaxed">
-          Tenda kapasitas 4 orang, cocok untuk camping keluarga atau pendakian ringan.
-          Kondisi bersih, kuat, dan siap digunakan.
-        </p>
-
-        <div class="mt-8 rounded-2xl bg-[#F4F4F2] p-5">
-          <p class="text-sm text-gray-500">Rental Price</p>
-
-          <p class="text-3xl font-bold text-[#E27252] mt-1">
-            Rp 80.000
-            <span class="text-base font-normal text-gray-500">/day</span>
-          </p>
-        </div>
-
-        <div class="mt-8 grid grid-cols-2 gap-4">
-
-          <button type="button"
-                  class="rounded-xl border border-[#19381C]/20 px-5 py-4 font-semibold hover:bg-[#F4F4F2]">
-            Add to Cart
-          </button>
-
-          <button type="button"
-                  class="rounded-xl bg-[#E27252] px-5 py-4 text-white font-semibold hover:bg-[#c85f41]">
-            Book Now
-          </button>
-
-        </div>
-
       </div>
-
     </div>
 
-    <section class="mt-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-      <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
-        <h2 class="text-2xl font-bold text-[#19381C]">
-          Equipment Description
-        </h2>
-
-        <p class="mt-4 text-gray-600 leading-relaxed">
-          Peralatan ini tersedia untuk disewa harian. Customer dapat melakukan booking melalui aplikasi,
-          kemudian mengambil barang langsung ke toko sesuai waktu yang ditentukan.
-        </p>
-      </div>
-
-      <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-8">
-        <h2 class="text-2xl font-bold text-[#19381C]">
-          Store Information
-        </h2>
-
-        <div class="mt-5 space-y-3 text-sm text-gray-600">
-          <p>🏪 Mountain Adventure</p>
-          <p>📍 Medan, Sumatera Utara</p>
-          <p>✅ Verified Store Partner</p>
-        </div>
-      </div>
-
-    </section>
-
   </section>
-
 </main>
+
+<script>
+  function tambahKeKeranjangAJAX(event, peralatanId) {
+      event.preventDefault();
+      const formData = new FormData();
+      formData.append("peralatanId", peralatanId);
+
+      fetch('/customer/cart/add', {
+          method: 'POST',
+          body: formData
+      })
+      .then(response => {
+          if (response.ok) {
+              showNotification("🎒 Item berhasil dimasukkan ke keranjang!");
+          } else {
+              showNotification("❌ Gagal menambahkan item.", true);
+          }
+      })
+      .catch(error => {
+          console.error("Error:", error);
+          showNotification("❌ Terjadi kesalahan koneksi.", true);
+      });
+  }
+
+  function showNotification(message, isError = false) {
+      const oldToast = document.getElementById("toast-notif");
+      if (oldToast) oldToast.remove();
+
+      const toast = document.createElement("div");
+      toast.id = "toast-notif";
+      toast.innerText = message;
+      toast.className = `fixed bottom-5 right-5 z-50 px-6 py-4 rounded-xl text-white font-semibold shadow-lg transition-all duration-300 transform translate-y-0 ${
+          isError ? 'bg-red-500' : 'bg-[#12372A]'
+      }`;
+
+      document.body.appendChild(toast);
+      setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transform = "translate-y-2";
+          setTimeout(() => toast.remove(), 300);
+      }, 3000);
+  }
+</script>
 
 </body>
 </html>
