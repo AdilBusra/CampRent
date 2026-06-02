@@ -53,11 +53,16 @@ public class StoreTransaksiController {
 
         Store store = storeOptional
                 .orElseThrow(() -> new RuntimeException("Toko tidak ditemukan"));
+
+        System.out.println("STORE ID = " + store.getId());
+        System.out.println("STORE NAME = " + store.getNamaToko());
         System.out.println("3️⃣ Store Name: " + store.getNamaToko());
         System.out.println("4️⃣ Store ID: " + store.getId());
 
         // 3. Check Peralatan
-        List<Peralatan> alatList = peralatanService.getPeralatanByStore(store);
+        List<Peralatan> alatList = peralatanRepository.findByStore(store);
+
+        System.out.println(alatList);
         System.out.println("5️⃣ Total Peralatan: " + alatList.size());
 
         if (alatList.isEmpty()) {
@@ -75,13 +80,31 @@ public class StoreTransaksiController {
         List<Transaksi> transaksiList = storeTransaksiService.getTransaksiByStore(username);
         System.out.println("6️⃣ Total Transaksi: " + transaksiList.size());
 
-        // Set model
+        System.out.println("DEBUG LIST ALAT = " + alatList);
+        System.out.println("DEBUG LIST TRANSAKSI = " + transaksiList);
+
+// Set model
         model.addAttribute("listAlat", alatList);
         model.addAttribute("listTransaksi", transaksiList);
         model.addAttribute("store", store);
 
+        System.out.println("MODEL listAlat = " + model.getAttribute("listAlat"));
+        System.out.println("MODEL listTransaksi = " + model.getAttribute("listTransaksi"));
+
         System.out.println("🔍 === END DEBUG ===");
         System.out.println("");
+
+        System.out.println("======================");
+        System.out.println("LIST ALAT SIZE = " + alatList.size());
+
+        for (Peralatan p : alatList) {
+            System.out.println(
+                    p.getId() + " | " +
+                            p.getNamaAlat() + " | " +
+                            p.getStok()
+            );
+        }
+        System.out.println("======================");
 
         return "store/transaction-list";
     }
