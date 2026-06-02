@@ -1,5 +1,6 @@
 package com.camprent.medan.service;
 
+import com.camprent.medan.repository.KategoriRepository;
 import com.camprent.medan.entity.*;
 import com.camprent.medan.repository.KeranjangRepository;
 import com.camprent.medan.repository.PeralatanRepository;
@@ -17,20 +18,34 @@ public class CustomerService {
     private PeralatanRepository peralatanRepository;
 
     @Autowired
-    private CustomerRepository customerRepository; // Tambahkan ini
+    private CustomerRepository customerRepository;
 
     @Autowired
     private KeranjangRepository keranjangRepository;
 
     @Autowired
+    private KategoriRepository kategoriRepository;
+    
+    @Autowired
     private StoreRepository storeRepository;
     /**
-     * Mengambil data lengkap Customer berdasarkan username akun login.
+     * Mengambil kategori berdasarkan keyword pencarian.
+     * Jika keyword kosong, kembalikan semua kategori.
      */
+    public List<Kategori> cariKategori(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return kategoriRepository.findAll();
+        }
+        return kategoriRepository.findByNamaKategoriContainingIgnoreCase(keyword);
+    }
+
+    public List<Kategori> getAllKategori() {
+        return kategoriRepository.findAll();
+    }
+
     public Customer getProfileByUsername(String username) {
         Optional<Customer> customerOpt = customerRepository.findByUserUsername(username);
         return customerOpt.orElse(null);
-        // Note: Idealnya lempar exception jika tidak ketemu, atau return default object.
     }
 
     public List<Peralatan> getKatalogUtama() {
@@ -50,28 +65,18 @@ public class CustomerService {
         );
     }
 
-    /**
-     * Menyimpan perubahan data profile customer ke database.
-     */
     public void updateProfile(String username, String namaLengkap, String email, String nomorTelepon, String nik) {
         Optional<Customer> customerOpt = customerRepository.findByUserUsername(username);
 
         if (customerOpt.isPresent()) {
             Customer customer = customerOpt.get();
-
-            // 1. Update data di tabel Customers
             customer.setNamaLengkap(namaLengkap);
             customer.setNomorTelepon(nomorTelepon);
             customer.setNik(nik);
 
-            // 2. Update data di tabel Users (Email dan Username menempel di entity User)
             if (customer.getUser() != null) {
                 customer.getUser().setEmail(email);
-                // Catatan: Biasanya username tidak diubah karena menjadi primary key / id login,
-                // jadi kita cukup update email-nya saja.
             }
-
-            // 3. Simpan perubahan ke database
             customerRepository.save(customer);
         }
     }
@@ -86,7 +91,6 @@ public class CustomerService {
         Peralatan peralatan = peralatanRepository.findById(peralatanId)
                 .orElseThrow(() -> new RuntimeException("Alat tidak ditemukan"));
 
-        // Cek apakah barang sudah ada di keranjang, jika ada tinggal tambah kuantitas
         Optional<KeranjangItem> existingItem = keranjangRepository.findByCustomerAndPeralatan(customer, peralatan);
 
         if (existingItem.isPresent()) {

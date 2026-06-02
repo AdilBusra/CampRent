@@ -2,7 +2,8 @@ package com.camprent.medan.controller;
 
 import com.camprent.medan.entity.KeranjangItem;
 import com.camprent.medan.entity.Peralatan;
-import com.camprent.medan.entity.Customer; // Import Customer
+import com.camprent.medan.entity.Customer;
+import com.camprent.medan.entity.Kategori;
 import com.camprent.medan.entity.Store;
 import com.camprent.medan.service.CustomerService;
 import jakarta.servlet.http.HttpSession;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal; // Untuk mendeteksi user login
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -21,134 +22,109 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
+    /**
+     * Rute halaman Home/Dashboard utama milik Customer
+     */
     @GetMapping("/dashboard")
     public String customerDashboard(Model model, Principal principal) {
-        // 1. Ambil data katalog alat gunung
         List<Peralatan> listKatalog = customerService.getKatalogUtama();
         model.addAttribute("listKatalog", listKatalog);
 
-        // 2. Ambil data user yang sedang login untuk dipasang di Welcome Message
         if (principal != null) {
             Customer currentCustomer = customerService.getProfileByUsername(principal.getName());
             model.addAttribute("customer", currentCustomer);
         } else {
-            // Fallback jika belum setup Spring Security (Ganti "amelia" dengan username di databasemu)
+            Customer currentCustomer = customerService.getProfileByUsername("amelia");
+            model.addAttribute("customer", currentCustomer);
+        }
+        return "customer/dashboard";
+    }
+
+    /**
+     * Rute halaman Catalog - Mengarah tepat ke file customer/katalog-list.html
+     */
+    @GetMapping({"/katalog", "/catalog"})
+    public String customerCatalog(@RequestParam(value = "keyword", required = false) String keyword, Model model, Principal principal) {
+        List<Peralatan> listKatalog = customerService.getKatalogUtama();
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            listKatalog = listKatalog.stream()
+                    .filter(p -> p.getNamaAlat().toLowerCase().contains(keyword.toLowerCase().trim()) ||
+                            p.getMerek().toLowerCase().contains(keyword.toLowerCase().trim()))
+                    .toList();
+            model.addAttribute("keyword", keyword);
+        }
+
+        model.addAttribute("listKatalog", listKatalog);
+
+        if (principal != null) {
+            Customer currentCustomer = customerService.getProfileByUsername(principal.getName());
+            model.addAttribute("customer", currentCustomer);
+        } else {
             Customer currentCustomer = customerService.getProfileByUsername("amelia");
             model.addAttribute("customer", currentCustomer);
         }
 
-        return "customer/dashboard";
+        return "customer/katalog-list";
+    }
+
+    /**
+     * BARU & AMAN: Menangani rute /customer/my-booking agar tidak memicu error 404 lagi.
+     * Mengarahkan langsung ke halaman riwayat pemesanan/nota transaksi milik customer.
+     */
+    @GetMapping("/my-booking")
+    public String customerMyBooking(Model model, Principal principal) {
+        if (principal != null) {
+            Customer currentCustomer = customerService.getProfileByUsername(principal.getName());
+            model.addAttribute("customer", currentCustomer);
+        } else {
+            Customer currentCustomer = customerService.getProfileByUsername("amelia");
+            model.addAttribute("customer", currentCustomer);
+        }
+
+        // Mengembalikan ke file template view customer/my-booking.html atau sejenisnya di proyekmu
+        return "customer/my-booking";
+    }
+
+    @GetMapping("/categories")
+    public String customerCategories(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
+        List<Kategori> listKategori;
+        List<Kategori> semuaKategori = customerService.getKatalogUtama().stream()
+                .map(Peralatan::getKategori)
+                .filter(k -> k != null)
+                .distinct()
+                .toList();
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            listKategori = semuaKategori.stream()
+                    .filter(k -> k.getNamaKategori().toLowerCase().contains(keyword.toLowerCase().trim()))
+                    .toList();
+            model.addAttribute("keyword", keyword);
+        } else {
+            listKategori = semuaKategori;
+        }
+
+        model.addAttribute("listKategori", listKategori);
+        return "customer/categories";
+    }
+
+    @GetMapping("/categories/{categoryName}")
+    public String viewCategoryDetail(@PathVariable("categoryName") String categoryName, Model model) {
+        List<Peralatan> listPeralatanSesuaiKategori = customerService.getKatalogUtama().stream()
+                .filter(p -> p.getKategori() != null && p.getKategori().getNamaKategori().equalsIgnoreCase(categoryName))
+                .toList();
+
+        model.addAttribute("listKatalog", listPeralatanSesuaiKategori);
+        model.addAttribute("selectedCategory", categoryName);
+        return "customer/category-detail";
     }
 
     @GetMapping("/profile")
     public String customerProfile(Model model, Principal principal) {
-        Customer currentCustomer;
-
-        if (principal != null) {
-            currentCustomer = customerService.getProfileByUsername(principal.getName());
-        } else {
-            // Fallback mock up jika belum pakai Spring Security
-            currentCustomer = customerService.getProfileByUsername("amelia");
-        }
-
-        // Kirim data customer ke profile.html
+        String username = (principal != null) ? principal.getName() : "amelia";
+        Customer currentCustomer = customerService.getProfileByUsername(username);
         model.addAttribute("customer", currentCustomer);
         return "customer/profile";
-    }
-
-    // ... method lainnya biarkan tetap sama
-
-    /**
-     * Menampilkan halaman katalog utama untuk Customer.
-     * Endpoint ini juga mendukung pencarian jika parameter 'keyword' dikirim dari form search FE.
-     * URL Akses: http://localhost:8080/customer/katalog
-     */
-    @GetMapping("/katalog")
-    public String tampilkanKatalog(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
-        List<Peralatan> listKatalog;
-
-        // Jika ada keyword pencarian, panggil fungsi cari. Jika tidak, tampilkan semua yang ready.
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            listKatalog = customerService.cariAlatDiKatalog(keyword);
-            model.addAttribute("keyword", keyword); // Dikembalikan ke HTML agar teks di input search tidak hilang
-        } else {
-            listKatalog = customerService.getKatalogUtama();
-        }
-
-        // Kirim list peralatan ke view Thymeleaf
-        model.addAttribute("listKatalog", listKatalog);
-
-        return "customer/katalog-list"; // Mengarah ke src/main/resources/templates/customer/katalog-list.html
-    }
-
-    @GetMapping("/categories")
-    public String customerCategories() {
-        return "customer/categories";
-    }
-
-    @GetMapping("/equipment/{id}")
-    public String equipmentDetail(@PathVariable Long id) {
-        return "customer/equipment-detail";
-    }
-
-    // Tampilkan Halaman Cart secara Dinamis
-    @GetMapping("/cart")
-    public String customerCart(Model model, Principal principal) {
-        String username = (principal != null) ? principal.getName() : "amelia";
-
-        List<KeranjangItem> listKeranjang = customerService.getKeranjangCustomer(username);
-        model.addAttribute("listKeranjang", listKeranjang);
-
-        return "customer/cart";
-    }
-
-    // Tambah Item ke Keranjang via AJAX (Tanpa Redirect)
-    @PostMapping("/cart/add")
-    @ResponseBody // <-- Tambahkan ini agar mengembalikan data/status, bukan nyari file HTML
-    public org.springframework.http.ResponseEntity<String> tambahItem(@RequestParam("peralatanId") Long peralatanId, Principal principal) {
-        String username = (principal != null) ? principal.getName() : "amelia";
-        try {
-            customerService.tambahKeKeranjang(username, peralatanId);
-            return org.springframework.http.ResponseEntity.ok("Berhasil menambahkan ke keranjang!");
-        } catch (Exception e) {
-            return org.springframework.http.ResponseEntity.status(500).body("Gagal: " + e.getMessage());
-        }
-    }
-
-    // Hapus Item dari Keranjang
-    @PostMapping("/cart/delete/{id}")
-    public String hapusItem(@PathVariable Long id) {
-        customerService.hapusDariKeranjang(id);
-        return "redirect:/customer/cart";
-    }
-
-    // Update Jumlah Kuantitas
-    @PostMapping("/cart/update/{id}")
-    public String updateKuantitas(@PathVariable Long id, @RequestParam("aksi") String aksi) {
-        int jumlah = aksi.equals("tambah") ? 1 : -1;
-        customerService.updateKuantitas(id, jumlah);
-        return "redirect:/customer/cart";
-    }
-
-    @GetMapping("/my-booking")
-    public String myBooking() {
-        return "customer/my-booking";
-    }
-
-    @GetMapping("/store/{id}")
-    public String customerStoreDetail(@PathVariable Long id) {
-        return "customer/store-detail";
-    }
-
-    @GetMapping("/categories/{categoryName}")
-    public String customerCategoryDetail(@PathVariable String categoryName, Model model) {
-        model.addAttribute("categoryName", categoryName);
-        return "customer/category-detail";
-    }
-
-    @GetMapping("/booking-success")
-    public String bookingSuccess() {
-        return "customer/booking-success";
     }
 
     @PostMapping("/profile/update")
@@ -157,19 +133,8 @@ public class CustomerController {
                                 @RequestParam("nomorTelepon") String nomorTelepon,
                                 @RequestParam("nik") String nik,
                                 Principal principal) {
-
-        // Tentukan username akun yang sedang login
-        String username;
-        if (principal != null) {
-            username = principal.getName();
-        } else {
-            username = "amelia"; // Fallback mockup jika belum pasang Spring Security
-        }
-
-        // Panggil service untuk eksekusi update ke DB
+        String username = (principal != null) ? principal.getName() : "amelia";
         customerService.updateProfile(username, namaLengkap, email, nomorTelepon, nik);
-
-        // Setelah sukses save, redirect kembali ke halaman profile agar datanya langsung ter-refresh
         return "redirect:/customer/profile";
     }
 
@@ -191,20 +156,15 @@ public class CustomerController {
     // Shortcut Book Now: Tambah ke keranjang lalu langsung arahkan ke halaman cart
     @GetMapping("/booking/{id}")
     public String instantBooking(@PathVariable("id") Long id, Principal principal) {
-        // 1. Deteksi username customer yang sedang login
         String username = (principal != null) ? principal.getName() : "amelia";
-
-        // 2. Manfaatkan fungsi tambah ke keranjang yang sudah kita buat di CustomerService kemarin
         customerService.tambahKeKeranjang(username, id);
-
-        // 3. Setelah sukses masuk ke database keranjang, langsung lempar user ke halaman cart
         return "redirect:/customer/cart";
     }
 
     @PostMapping("/logout")
     public String manualLogout(HttpSession session) {
-        session.invalidate(); // Menghapus semua data session login
-        return "redirect:/login"; // Diarahkan kembali ke halaman login utama
+        session.invalidate();
+        return "redirect:/login";
     }
 
     @GetMapping("/store/detail/{id}")

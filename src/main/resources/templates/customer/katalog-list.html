@@ -5,34 +5,16 @@
   <title>Customer Catalog - CampRent</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-[#F8F5EC] text-[#12372A]">
+<body class="bg-[#F4F4F2] text-[#12372A] font-sans antialiased">
 
-<div th:replace="~{fragments/customer-navbar :: customerNavbar('catalog')}">
-  <nav class="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
-    <a th:href="@{/customer/katalog}" class="text-2xl font-bold">
-      Camp<span class="text-[#F28C73]">Rent</span>
-    </a>
+<!-- Memanggil Navbar Customer -->
+<div th:replace="~{fragments/customer-navbar :: customerNavbar('catalog')}"></div>
 
-    <div class="hidden md:flex items-center gap-8 text-sm font-semibold">
-      <a href="#" class="hover:text-[#F28C73]">Home</a>
-      <a th:href="@{/customer/katalog}" class="text-[#F28C73]">Catalog</a>
-      <a href="#" class="hover:text-[#F28C73]">My Booking</a>
-      <a href="#" class="hover:text-[#F28C73]">Cart</a>
-    </div>
+<main class="pt-24 bg-[#F4F4F2] min-h-screen">
 
-    <form th:action="@{/logout}" method="post">
-      <button type="submit"
-              class="rounded-full bg-[#12372A] px-5 py-2 text-white text-sm font-semibold hover:bg-[#1f4d3b]">
-        Logout
-      </button>
-    </form>
-  </nav>
-</div>
-
-<main class="pt-20 bg-[#F4F4F2] min-h-screen">
-
-  <section class="bg-[#F4F4F2] border-b border-gray-200">
-    <div class="max-w-7xl mx-auto px-8 py-8">
+  <!-- Bagian Header & Form Pencarian -->
+  <section class="bg-[#F4F4F2]">
+    <div class="max-w-7xl mx-auto px-8 py-4">
 
       <div class="mb-5">
         <h1 class="text-3xl font-bold text-[#19381C]">Catalog</h1>
@@ -42,24 +24,22 @@
       </div>
 
       <form th:action="@{/customer/katalog}" method="get"
-            class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 flex gap-3">
-
+            class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 p-4 flex gap-3">
         <input type="text"
                name="keyword"
                th:value="${keyword}"
                placeholder="Search by equipment name or brand..."
                class="flex-1 rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#E27252]">
-
         <button type="submit"
-                class="rounded-xl bg-[#E27252] px-6 py-3 text-white font-semibold hover:bg-[#c85f41]">
+                class="rounded-xl bg-[#E27252] px-8 py-3 text-white font-semibold hover:bg-[#c85f41] transition">
           Search
         </button>
-
       </form>
 
     </div>
   </section>
 
+  <!-- Jika Katalog Kosong -->
   <section th:if="${#lists.isEmpty(listKatalog)}"
            class="max-w-7xl mx-auto px-8 py-8">
     <div class="rounded-3xl bg-white border border-gray-100 p-12 text-center shadow-sm">
@@ -71,16 +51,58 @@
     </div>
   </section>
 
+  <!-- Grid Utama Menampilkan Kartu Barang -->
   <section th:if="${!#lists.isEmpty(listKatalog)}"
            class="max-w-7xl mx-auto px-8 py-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
     <th:block th:each="peralatanItem : ${listKatalog}">
       <div th:replace="~{fragments/equipment-card :: productCard(${peralatanItem})}"></div>
     </th:block>
-
   </section>
 
 </main>
+
+<!-- JAVASCRIPT AJAX YANG SINKRON 100% DENGAN TOMBOL ADD TO CART -->
+<script>
+  function tambahKeKeranjangAJAX(event, peralatanId) {
+      event.preventDefault();
+
+      fetch('/customer/booking/' + peralatanId, {
+          method: 'GET'
+      })
+      .then(response => {
+          if (response.redirected || response.ok) {
+              showNotification("🎒 Item berhasil dimasukkan ke keranjang!");
+              setTimeout(() => { window.location.href = "/customer/cart"; }, 1000);
+          } else {
+              showNotification("❌ Gagal menambahkan item.", true);
+          }
+      })
+      .catch(error => {
+          console.error("Error:", error);
+          showNotification("❌ Terjadi kesalahan koneksi.", true);
+      });
+  }
+
+  function showNotification(message, isError = false) {
+      const oldToast = document.getElementById("toast-notif");
+      if (oldToast) oldToast.remove();
+
+      const toast = document.createElement("div");
+      toast.id = "toast-notif";
+      toast.innerText = message;
+      toast.className = `fixed bottom-5 right-5 z-50 px-6 py-4 rounded-xl text-white font-semibold shadow-lg transition-all duration-300 transform translate-y-0 ${
+          isError ? 'bg-red-500' : 'bg-[#12372A]'
+      }`;
+
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+          toast.style.opacity = "0";
+          toast.style.transform = "translate-y-2";
+          setTimeout(() => toast.remove(), 300);
+      }, 3000);
+  }
+</script>
 
 </body>
 </html>
