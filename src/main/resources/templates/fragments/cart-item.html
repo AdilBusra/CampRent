@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="itemKeranjangRow(item)"
+     class="bg-white rounded-3xl border border-gray-100 shadow-sm p-5 flex gap-5 data-cart-row"
+     th:data-price="${item.peralatan.hargaSewaPerHari}"
+     th:data-qty="${item.kuantitas}">
+
+    <div class="w-32 h-32 rounded-2xl bg-[#EAE5D8] flex items-center justify-center text-5xl">
+        <span th:if="${item.peralatan.fotoPeralatan == null}">🏕️</span>
+        <img th:if="${item.peralatan.fotoPeralatan != null}"
+             th:src="@{'/uploads/peralatan/' + ${item.peralatan.fotoPeralatan}}"
+             class="w-full h-full object-cover rounded-2xl">
+    </div>
+
+    <div class="flex-1">
+        <div class="flex justify-between gap-4">
+            <div>
+                <p class="text-xs font-bold text-[#E27252]" th:text="${item.peralatan.kategori.namaKategori}">CATEGORY</p>
+                <h2 class="text-xl font-bold text-[#19381C] mt-1" th:text="${item.peralatan.namaAlat}">Nama Alat</h2>
+                <p class="text-sm text-gray-500 mt-1" th:text="'By ' + ${item.peralatan.store.namaToko}">By Store</p>
+            </div>
+
+            <form th:action="@{/customer/cart/delete/{id}(id=${item.id})}" method="post">
+                <button type="submit" class="text-red-500 font-bold hover:text-red-700">
+                    Remove
+                </button>
+            </form>
+        </div>
+
+        <div class="mt-5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <form th:action="@{/customer/cart/update/{id}(id=${item.id})}" method="post" class="inline">
+                    <input type="hidden" name="aksi" value="kurang">
+                    <button type="submit" class="w-9 h-9 rounded-lg border font-bold hover:bg-gray-100">-</button>
+                </form>
+
+                <span class="font-bold" th:text="${item.kuantitas}">1</span>
+
+                <form th:action="@{/customer/cart/update/{id}(id=${item.id})}" method="post" class="inline">
+                    <input type="hidden" name="aksi" value="tambah">
+                    <button type="submit" class="w-9 h-9 rounded-lg border font-bold hover:bg-gray-100">+</button>
+                </form>
+            </div>
+
+            <p class="text-lg font-bold text-[#E27252]">
+                Rp <span th:text="${#numbers.formatDecimal(item.peralatan.hargaSewaPerHari, 0, 'POINT', 0, 'COMMA')}">0</span>/day
+            </p>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+
+<div th:fragment="productCard(peralatan)"
+     class="group overflow-hidden rounded-2xl bg-white border border-[#12372A]/10 shadow-sm hover:shadow-lg transition duration-300">
+
+    <div class="relative h-52 bg-[#EAE5D8] flex items-center justify-center overflow-hidden">
+        <img th:if="${peralatan.fotoPeralatan != null}"
+             th:src="@{'/uploads/peralatan/' + ${peralatan.fotoPeralatan}}"
+             alt="Equipment Photo"
+             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+        <div th:if="${peralatan.fotoPeralatan == null}"
+             class="text-7xl group-hover:scale-110 transition-transform duration-300">🏕️</div>
+
+        <span class="absolute top-4 left-4 rounded-full bg-white px-3 py-1 text-xs font-bold text-[#F28C73]"
+              th:text="${peralatan.kategori != null ? peralatan.kategori.namaKategori : 'General'}">Category</span>
+    </div>
+
+    <div class="p-5">
+        <h3 class="text-xl font-bold text-[#19381C]" th:text="${peralatan.namaAlat}">Nama Alat</h3>
+        <p class="text-sm text-gray-500 mt-1" th:text="${peralatan.merek}">Merek</p>
+
+        <div class="mt-4 flex items-center gap-2" th:if="${peralatan.store != null}">
+            <div class="w-8 h-8 rounded-full bg-[#12372A] text-white flex items-center justify-center text-xs font-bold"
+                 th:text="${#strings.substring(peralatan.store.namaToko, 0, 1)}">S</div>
+            <div>
+                <p class="text-xs text-gray-500">Rental Store</p>
+                <p class="text-sm font-semibold text-[#12372A]" th:text="${peralatan.store.namaToko}">Nama Toko</p>
+            </div>
+        </div>
+
+        <p class="mt-4 text-sm text-[#12372A]/70 line-clamp-2" th:text="${peralatan.deskripsi}">
+            Deskripsi singkat peralatan camping.
+        </p>
+
+        <div class="mt-5 flex items-center justify-between">
+      <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+        Stock <span th:text="${peralatan.stok}">0</span>
+      </span>
+            <p class="text-lg font-bold text-[#F28C73]">
+                Rp<span th:text="${#numbers.formatDecimal(peralatan.hargaSewaPerHari, 0, 'POINT', 0, 'COMMA')}">0</span>
+                <span class="text-xs text-gray-500 font-normal">/day</span>
+            </p>
+        </div>
+
+        <div class="mt-5 grid grid-cols-2 gap-3">
+
+            <form th:onsubmit="tambahKeKeranjangAJAX(event, [[${peralatan.id}]])">
+                <button type="submit"
+                        class="w-full rounded-full border border-[#12372A]/20 px-4 py-3 text-sm font-semibold hover:bg-[#F8F5EC] transition duration-200">
+                    Add to Cart
+                </button>
+            </form>
+
+            <a th:href="@{/customer/booking/{id}(id=${peralatan.id})}"
+               class="rounded-full bg-[#F28C73] px-4 py-3 text-center text-sm font-semibold text-white hover:bg-[#e17860]">
+                Book Now
+            </a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
