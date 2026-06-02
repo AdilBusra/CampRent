@@ -7,9 +7,19 @@
      th:data-price="${item.peralatan.hargaSewaPerHari}"
      th:data-qty="${item.kuantitas}">
 
-    <div class="w-32 h-32 rounded-2xl bg-[#EAE5D8] flex items-center justify-center text-5xl">
-        <span th:if="${item.peralatan.fotoPeralatan == null}">🏕️</span>
-        <img th:if="${item.peralatan.fotoPeralatan != null}"
+    <div class="flex items-center justify-center pl-2">
+        <input type="checkbox"
+               name="selectedItems"
+               th:value="${item.id}"
+               onchange="updateCartSummary()"
+               class="w-5 h-5 rounded text-[#E27252] focus:ring-[#E27252] border-gray-300 item-checkbox"
+               checked>
+    </div>
+
+    <div class="w-32 h-32 rounded-2xl bg-[#EAE5D8] flex items-center justify-center text-5xl select-none">
+        <span th:if="${item.peralatan.fotoPeralatan == null or item.peralatan.fotoPeralatan == '' or item.peralatan.fotoPeralatan == 'default-equipment.jpg'}">🏕️</span>
+
+        <img th:unless="${item.peralatan.fotoPeralatan == null or item.peralatan.fotoPeralatan == '' or item.peralatan.fotoPeralatan == 'default-equipment.jpg'}"
              th:src="@{'/uploads/peralatan/' + ${item.peralatan.fotoPeralatan}}"
              class="w-full h-full object-cover rounded-2xl">
     </div>

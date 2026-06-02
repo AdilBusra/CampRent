@@ -227,4 +227,26 @@ public class CustomerController {
 
         return "customer/store-detail";
     }
+
+    @GetMapping("/checkout")
+    public String checkoutConfirmation(
+            @RequestParam("selectedItems") List<Long> selectedItemIds,
+            @RequestParam("rentalDate") String rentalDate,
+            @RequestParam("returnDate") String returnDate,
+            Model model, Principal principal) {
+
+        // 1. Ambil data customer yang sedang login
+        String username = (principal != null) ? principal.getName() : "amelia";
+
+        // 2. Kamu bisa memproses list item keranjang berdasarkan ID yang dipilih saja
+        // (Opsional: buat method baru di CustomerService untuk filter list item berdasarkan list ID ini)
+
+        // Kirim data ke page konfirmasi booking final
+        model.addAttribute("selectedItemIds", selectedItemIds);
+        model.addAttribute("rentalDate", rentalDate);
+        model.addAttribute("returnDate", returnDate);
+
+        return "customer/checkout-confirmation"; // Buat file HTML baru ini jika diperlukan untuk review akhir
+    }
+
 }
