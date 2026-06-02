@@ -1,76 +1,71 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Booking & Rental Management - CampRent</title>
+    <title>Manajemen Pemesanan & Rental - CampRent</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="bg-[#F8F5EC] text-[#12372A]">
 
-<div th:replace="~{fragments/store-sidebar :: storeSidebar('transactions')}"></div>
-<div th:replace="~{fragments/navbar :: navbar('Booking Management')}"></div>
+<div th:replace="~{fragments/store-sidebar :: storeSidebar('transaksi')}"></div>
+<div th:replace="~{fragments/navbar :: navbar('Manajemen Transaksi')}"></div>
 
 <main class="min-h-screen lg:ml-64 p-6">
 
     <section class="mb-8">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold">Booking & Rental Management</h1>
+                <h1 class="text-3xl font-bold">Manajemen Pemesanan & Rental</h1>
                 <p class="text-sm text-[#12372A]/70 mt-1">
-                    Monitor online bookings and offline rentals.
+                    Pantau pemesanan online dan rental offline tokomu.
                 </p>
             </div>
         </div>
     </section>
 
-    <!-- ✅ BUTTON TO OPEN OFFLINE RENTAL FORM -->
     <div class="mb-6">
         <button type="button" onclick="openOfflineRentalModal()"
                 class="rounded-xl bg-[#F28C73] px-5 py-3 text-white font-semibold hover:bg-[#e17860] transition">
-            + New Offline Rental
+            + Rental Offline Baru
         </button>
     </div>
 
-    <!-- ✅ TRANSAKSI TABLE - DYNAMIC DATA FROM DATABASE -->
     <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
 
                 <thead class="bg-[#12372A] text-white">
                 <tr>
-                    <th class="px-5 py-4 font-semibold">Transaction ID</th>
-                    <th class="px-5 py-4 font-semibold">Source</th>
-                    <th class="px-5 py-4 font-semibold">Customer</th>
-                    <th class="px-5 py-4 font-semibold">Rental Date</th>
-                    <th class="px-5 py-4 font-semibold">Return Date</th>
+                    <th class="px-5 py-4 font-semibold">ID Transaksi</th>
+                    <th class="px-5 py-4 font-semibold">Sumber</th>
+                    <th class="px-5 py-4 font-semibold">Pelanggan</th>
+                    <th class="px-5 py-4 font-semibold">Tanggal Sewa</th>
+                    <th class="px-5 py-4 font-semibold">Tanggal Kembali</th>
                     <th class="px-5 py-4 font-semibold">Total</th>
                     <th class="px-5 py-4 font-semibold">Status</th>
-                    <th class="px-5 py-4 font-semibold text-right">Action</th>
+                    <th class="px-5 py-4 font-semibold text-right">Aksi</th>
                 </tr>
                 </thead>
 
                 <tbody class="divide-y divide-gray-100">
 
-                <!-- ✅ JIKA TIDAK ADA TRANSAKSI -->
                 <tr th:if="${#lists.isEmpty(listTransaksi)}">
                     <td colspan="8" class="px-5 py-16">
                         <div class="flex flex-col items-center justify-center text-center">
                             <div class="text-6xl mb-4">📋</div>
-                            <h3 class="text-xl font-bold text-[#12372A]">No Transactions Yet</h3>
+                            <h3 class="text-xl font-bold text-[#12372A]">Belum Ada Transaksi</h3>
                             <p class="mt-2 text-sm text-gray-500 max-w-md">
-                                Customer booking requests and offline rentals will appear here.
+                                Pesanan dari pelanggan dan riwayat rental offline akan muncul di sini.
                             </p>
                         </div>
                     </td>
                 </tr>
 
-                <!-- ✅ LOOP TRANSAKSI DARI DATABASE -->
                 <tr th:each="transaksi : ${listTransaksi}" class="hover:bg-[#F8F5EC] transition cursor-pointer"
                     th:onclick="openDetailModal([[${transaksi.id}]], [[${transaksi.source}]])">
 
                     <td class="px-5 py-4 font-semibold">
-                        <!-- Format ID sesuai source: ONLINE (#ON001) atau OFFLINE (#OFF001) -->
                         <span th:text="${transaksi.source == 'ONLINE'} ? '#ON' + ${transaksi.id} : '#OFF' + ${transaksi.id}">
                             #--
                         </span>
@@ -83,10 +78,9 @@
                         </span>
                     </td>
 
-                    <!-- ✅ CUSTOMER NAME (Online: dari Customer, Offline: dari namaCustomer) -->
                     <td class="px-5 py-4">
                         <span th:if="${transaksi.source == 'ONLINE'}"
-                              th:text="${transaksi.customer?.namaLengkap ?: 'Unknown'}">
+                              th:text="${transaksi.customer?.namaLengkap ?: 'Tidak Diketahui'}">
                             Customer Name
                         </span>
                         <span th:if="${transaksi.source == 'OFFLINE'}"
@@ -118,7 +112,7 @@
 
                     <td class="px-5 py-4 text-right">
                         <button type="button" class="text-blue-600 font-semibold hover:underline">
-                            View Details
+                            Lihat Detail
                         </button>
                     </td>
 
@@ -133,15 +127,12 @@
 
 </main>
 
-<!-- ✅ IMPORT FRAGMENTS (Modal & Form) -->
 <div th:replace="~{fragments/offline-rental-modal :: offlineRentalModal}"></div>
 <div th:replace="~{fragments/booking-detail-modal :: bookingDetailModal}"></div>
 <div th:replace="~{fragments/offline-detail-modal :: offlineDetailModal}"></div>
 
-<!-- ✅ SCRIPT: Inject Data Thymeleaf ke JavaScript -->
 <script th:inline="javascript">
     /*<![CDATA[*/
-    // ✅ DATA PERALATAN: Dari Controller ke JavaScript untuk dropdown
     window.dataPeralatanToko = [
         /*[# th:each="alat, stat : ${listAlat}"]*/
 {
@@ -151,11 +142,10 @@
     stok: /*[[${alat.stok}]]*/ 0
 }/*[# th:if="${!stat.last}"]*/,/*[/]*/
 /*[/]*/
-    ].filter(item => item.id !== 0); // Filter out any empty placeholder
+    ].filter(item => item.id !== 0);
 
-    console.log("Data Peralatan Loaded:", window.dataPeralatanToko); // DEBUG
+    console.log("Data Peralatan Loaded:", window.dataPeralatanToko);
 
-    // ✅ DATA TRANSAKSI: Untuk populate modal saat diklik
     window.dataTransaksi = [
         /*[# th:each="transaksi : ${listTransaksi}"]*/
         {
@@ -171,13 +161,12 @@
         /*[/]*/
     ].filter(item => item.id !== 0);
 
-    console.log("Data Transaksi Loaded:", window.dataTransaksi); // DEBUG
+    console.log("Data Transaksi Loaded:", window.dataTransaksi);
     /*]]>*/
 </script>
 
 <script th:src="@{/js/main.js}"></script>
 
-<!-- ✅ HELPER FUNCTION: Buka modal detail sesuai source -->
 <script>
     function openDetailModal(transaksiId, source) {
         const transaksi = window.dataTransaksi.find(t => t.id === transaksiId);
@@ -188,7 +177,6 @@
         }
 
         if (source === 'ONLINE') {
-            // Populate Online Booking Modal
             document.getElementById("modalBookingId").innerText = "#ON" + transaksi.id;
             document.getElementById("modalCustomerName").innerText = transaksi.namaCustomer;
             document.getElementById("modalCustomerPhone").innerText = transaksi.noHp;
@@ -196,7 +184,6 @@
             document.getElementById("modalReturnDate").innerText = transaksi.tanggalKembali;
             document.getElementById("modalTotalPrice").innerText = "Rp" + transaksi.totalHarga.toLocaleString("id-ID");
 
-            // Set status badge
             const statusBadge = document.getElementById("modalBookingStatus");
             statusBadge.innerText = transaksi.status;
             statusBadge.className = transaksi.status === 'TERLAMBAT' ?
@@ -205,7 +192,6 @@
 
             openBookingDetailModal();
         } else {
-            // Populate Offline Rental Modal
             document.getElementById("modalOfflineId").innerText = "#OFF" + transaksi.id;
             document.getElementById("modalOfflineCustomerName").innerText = transaksi.namaCustomer;
             document.getElementById("modalOfflineCustomerPhone").innerText = transaksi.noHp;
