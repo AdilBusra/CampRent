@@ -20,4 +20,8 @@ public class Kategori {
 
     @Column(name = "nama_kategori", nullable = false, unique = true)
     private String namaKategori;
+
+    // ✅ BARU: Kolom untuk menyimpan nama file gambar kategori
+    @Column(name = "gambar_kategori")
+    private String gambarKategori; // Contoh: "tent-category.jpg"
 }

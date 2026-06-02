@@ -21,7 +21,7 @@
   <div class="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
 
     <div class="max-w-2xl text-white space-y-6">
-      <p class="text-[#E27252] font-semibold">
+      <p class="text-[#E27252] font-semibold" th:text="'Welcome back, ' + ${customer != null ? customer.namaLengkap : 'Camper'} + '!'">
         Welcome back, Camper!
       </p>
 
