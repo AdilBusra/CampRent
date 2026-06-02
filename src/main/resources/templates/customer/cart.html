@@ -76,6 +76,14 @@
 </main>
 
 <script>
+  function getTodayDateString() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const day = String(today.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+  }
+
   function formatRupiah(value) {
       return "Rp " + value.toLocaleString("id-ID");
   }
@@ -98,17 +106,81 @@
       const duration = calculateCartDuration();
       let totalBiayaSeluruhnya = 0;
 
-      // Scan seluruh item row yang dirender oleh Thymeleaf fragment
       document.querySelectorAll('.data-cart-row').forEach(row => {
-          const harga = parseInt(row.getAttribute('data-price')) || 0;
-          const qty = parseInt(row.getAttribute('data-qty')) || 1;
-          totalBiayaSeluruhnya += (harga * qty * duration);
+          const checkbox = row.querySelector('.item-checkbox');
+          if (checkbox && checkbox.checked) {
+              const harga = parseInt(row.getAttribute('data-price')) || 0;
+              const qty = parseInt(row.getAttribute('data-qty')) || 1;
+              totalBiayaSeluruhnya += (harga * qty * duration);
+          }
       });
 
       document.getElementById("cartTotal").innerText = formatRupiah(totalBiayaSeluruhnya);
-      document.getElementById("summaryDuration").innerText = duration + " day(s)";
-      document.getElementById("cartDurationText").innerText = duration + " day(s)";
+      document.getElementById("summaryDuration").innerText = duration + " days";
   }
+
+  // ==========================================
+  // LOGIKA VALIDASI SATU TOKO (SINGLE VENDOR)
+  // ==========================================
+  function validateSingleStoreCheckout(event) {
+      const checkedRows = [];
+
+      // 1. Kumpulkan semua baris item yang dicentang saja
+      document.querySelectorAll('.data-cart-row').forEach(row => {
+          const checkbox = row.querySelector('.item-checkbox');
+          if (checkbox && checkbox.checked) {
+              checkedRows.push(row);
+          }
+      });
+
+      // Validasi 0: Jika tidak ada barang yang dicentang
+      if (checkedRows.length === 0) {
+          alert("Silakan pilih minimal 1 peralatan camping untuk dibooking!");
+          event.preventDefault(); // Gagalkan submit form
+          return false;
+      }
+
+      // 2. Ambil store ID dari item pertama yang dicentang sebagai acuan utama
+      const firstStoreId = checkedRows[0].getAttribute('data-store-id');
+
+      // 3. Bandingkan dengan store ID dari item tercentang lainnya
+      for (let i = 1; i < checkedRows.length; i++) {
+          const currentStoreId = checkedRows[i].getAttribute('data-store-id');
+
+          if (currentStoreId !== firstStoreId) {
+              // 4. Jika beda toko, munculkan alert eror dan batalkan transaksi
+              alert("Gagal Booking! Kamu hanya bisa menyewa dari 1 toko yang sama dalam sekali transaksi. Silakan hilangkan centang pada item dari toko lain.");
+              event.preventDefault(); // Gagalkan submit form
+              return false;
+          }
+      }
+
+      return true; // Lolos validasi, lanjutkan proses ke backend
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+      const rentalDateInput = document.getElementById("cartRentalDate");
+      const returnDateInput = document.getElementById("cartReturnDate");
+
+      if (rentalDateInput) {
+          const todayStr = getTodayDateString();
+          rentalDateInput.value = todayStr;
+          rentalDateInput.setAttribute("readonly", "true");
+
+          if (returnDateInput) {
+              returnDateInput.min = todayStr;
+          }
+      }
+
+      // PASANG EVENT LISTENER PADA FORM BOOKING SUMMARY
+      // Ganti 'formBookingSummary' dengan ID form asli yang ada di cart.html kamu
+      const bookingForm = document.querySelector('form[action*="booking"]');
+      if (bookingForm) {
+          bookingForm.addEventListener("submit", validateSingleStoreCheckout);
+      }
+
+      updateCartSummary();
+  });
 
   document.addEventListener("DOMContentLoaded", updateCartSummary);
 </script>

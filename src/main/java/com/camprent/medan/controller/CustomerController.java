@@ -8,6 +8,7 @@ import com.camprent.medan.entity.Store;
 import com.camprent.medan.service.CustomerService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -82,7 +83,6 @@ public class CustomerController {
             model.addAttribute("customer", currentCustomer);
         }
 
-        // Mengembalikan ke file template view customer/my-booking.html atau sejenisnya di proyekmu
         return "customer/my-booking";
     }
 
@@ -108,17 +108,6 @@ public class CustomerController {
         return "customer/categories";
     }
 
-    @GetMapping("/categories/{categoryName}")
-    public String viewCategoryDetail(@PathVariable("categoryName") String categoryName, Model model) {
-        List<Peralatan> listPeralatanSesuaiKategori = customerService.getKatalogUtama().stream()
-                .filter(p -> p.getKategori() != null && p.getKategori().getNamaKategori().equalsIgnoreCase(categoryName))
-                .toList();
-
-        model.addAttribute("listKatalog", listPeralatanSesuaiKategori);
-        model.addAttribute("selectedCategory", categoryName);
-        return "customer/category-detail";
-    }
-
     @GetMapping("/profile")
     public String customerProfile(Model model, Principal principal) {
         String username = (principal != null) ? principal.getName() : "amelia";
@@ -141,14 +130,12 @@ public class CustomerController {
     // Menampilkan halaman detail peralatan berdasarkan ID secara dinamis
     @GetMapping("/equipment/detail/{id}")
     public String detailPeralatan(@PathVariable("id") Long id, Model model) {
-        // Ambil data peralatan dari database menggunakan service yang sudah ada
         java.util.Optional<com.camprent.medan.entity.Peralatan> peralatanOpt = customerService.getPeralatanById(id);
 
         if (peralatanOpt.isEmpty()) {
             return "redirect:/customer/katalog?error=AlatTidakDitemukan";
         }
 
-        // Kirim objek peralatan ke dalam template HTML
         model.addAttribute("peralatan", peralatanOpt.get());
         return "customer/equipment-detail";
     }
@@ -169,7 +156,6 @@ public class CustomerController {
 
     @GetMapping("/store/detail/{id}")
     public String detailStore(@PathVariable("id") Long id, Model model) {
-        // 1. Ambil data toko berdasarkan ID
         java.util.Optional<Store> storeOpt = customerService.getStoreById(id);
 
         if (storeOpt.isEmpty()) {
@@ -177,14 +163,86 @@ public class CustomerController {
         }
 
         Store store = storeOpt.get();
-
-        // 2. Ambil semua peralatan gunung yang dijual oleh toko ini saja
         List<Peralatan> listPeralatanToko = customerService.getPeralatanByStore(store);
 
-        // 3. Masukkan ke model agar bisa dibaca Thymeleaf
         model.addAttribute("store", store);
-        model.addAttribute("listKatalog", listPeralatanToko); // kita pakai nama listKatalog agar mudah dilooping
+        model.addAttribute("listKatalog", listPeralatanToko);
 
         return "customer/store-detail";
+    }
+
+    @GetMapping("/cart")
+    public String viewCart(Model model, Principal principal) {
+        String username = (principal != null) ? principal.getName() : "amelia";
+        List<KeranjangItem> listKeranjang = customerService.getKeranjangCustomer(username);
+        model.addAttribute("listKeranjang", listKeranjang);
+        return "customer/cart";
+    }
+
+    // ==========================================
+    // METHOD UNTUK OPERASI AJAK / BACKGROUND CART
+    // ==========================================
+
+    /**
+     * BARU: Menangani request penambahan item ke keranjang belanja melalui AJAX (Fetch).
+     * Mencegah halaman berpindah rute/refresh saat tombol "Add to Cart" ditekan.
+     * URL: POST /customer/cart/add/{id}
+     */
+    @PostMapping("/cart/add/{id}")
+    @ResponseBody
+    public ResponseEntity<?> AJAXAddToCart(@PathVariable("id") Long id, Principal principal) {
+        // Ambil data user yang sedang login
+        String username = (principal != null) ? principal.getName() : "amelia";
+
+        // Eksekusi penambahan ke database via service
+        customerService.tambahKeKeranjang(username, id);
+
+        // Berikan respon HTTP 200 OK kosong supaya dibaca sukses oleh JavaScript front-end
+        return ResponseEntity.ok().build();
+    }
+
+    // ==========================================
+    // METHOD TAMBAHAN UNTUK DELETE & UPDATE CART
+    // ==========================================
+
+    /**
+     * Menangani aksi hapus item dari keranjang belanja
+     * URL: POST /customer/cart/delete/{id}
+     */
+    @PostMapping("/cart/delete/{id}")
+    public String deleteCartItem(@PathVariable("id") Long id) {
+        customerService.hapusDariKeranjang(id);
+        return "redirect:/customer/cart";
+    }
+
+    /**
+     * Menangani aksi tambah/kurang kuantitas item di keranjang belanja
+     * URL: POST /customer/cart/update/{id}
+     */
+    @PostMapping("/cart/update/{id}")
+    public String updateCartItemQuantity(@PathVariable("id") Long id, @RequestParam("aksi") String aksi) {
+        if ("tambah".equalsIgnoreCase(aksi)) {
+            customerService.updateKuantitas(id, 1);
+        } else if ("kurang".equalsIgnoreCase(aksi)) {
+            customerService.updateKuantitas(id, -1);
+        }
+        return "redirect:/customer/cart";
+    }
+
+    @GetMapping("/categories/{id}")
+    public String categoryDetail(@PathVariable("id") Long id, Model model) {
+        // 1. Ambil data kategori untuk menampilkan nama kategori di header
+        Kategori kategori = customerService.getKategoriById(id) // Pastikan method ini ada di CustomerService
+                .orElseThrow(() -> new RuntimeException("Kategori tidak ditemukan"));
+
+        // 2. Ambil list peralatan yang memiliki kategori tersebut
+        // Anda bisa memanfaatkan relasi atau membuat method baru di service, contoh:
+        List<Peralatan> listKatalog = customerService.getPeralatanByKategoriId(id);
+
+        // 3. Masukkan ke model agar bisa dibaca Thymeleaf
+        model.addAttribute("categoryName", kategori.getNamaKategori());
+        model.addAttribute("listKatalog", listKatalog);
+
+        return "customer/category-detail"; // Mengarah ke template category-detail.html
     }
 }

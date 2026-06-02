@@ -37,8 +37,15 @@
         <p class="text-gray-500 font-medium">Category not found.</p>
       </div>
 
+      <!-- LINK DILURUSKAN MENGGUNAKAN ID KATEGORI DARI DATABASE -->
       <th:block th:each="kat : ${listKategori}">
-        <div th:replace="~{fragments/equipment-category-card :: categoryCard(${kat})}"></div>
+        <div th:onclick="|window.location.href='@{/customer/categories/{id}(id=${kat.id})}'|"
+             class="cursor-pointer overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition duration-300 p-6 flex flex-col items-center justify-center text-center">
+          <div class="w-16 h-16 rounded-full bg-[#EAE5D8] flex items-center justify-center text-3xl mb-4">
+            🏕️
+          </div>
+          <h3 class="text-lg font-bold text-[#19381C]" th:text="${kat.namaKategori}">Nama Kategori</h3>
+        </div>
       </th:block>
 
     </div>

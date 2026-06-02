@@ -117,6 +117,33 @@ public class CustomerService {
             keranjangRepository.save(item);
         }
     }
+
+    // ==========================================
+    // METHOD TAMBAHAN UNTUK DETAIL KATEGORI
+    // ==========================================
+
+    /**
+     * Mengambil data objek Kategori berdasarkan ID-nya
+     */
+    public Optional<Kategori> getKategoriById(Long id) {
+        return kategoriRepository.findById(id);
+    }
+
+    /**
+     * Mengambil list peralatan berdasarkan ID Kategori yang stoknya ready (> 0)
+     */
+    public List<Peralatan> getPeralatanByKategoriId(Long kategoriId) {
+        // 1. Cari dulu objek kategori-nya dari database
+        Optional<Kategori> kategoriOpt = kategoriRepository.findById(kategoriId);
+
+        if (kategoriOpt.isPresent()) {
+            // 2. Jika ketemu, lempar objek kategori ke method findByKategoriAndStokGreaterThan yang sudah ada
+            return peralatanRepository.findByKategoriAndStokGreaterThan(kategoriOpt.get(), 0);
+        }
+
+        // Jika kategori tidak ditemukan, kembalikan list kosong agar tidak error
+        return java.util.Collections.emptyList();
+    }
     // Tambahkan method ini di paling bawah CustomerService.java sebelum tanda penutup kelas '}'
     public Optional<Peralatan> getPeralatanById(Long id) {
         return peralatanRepository.findById(id);
