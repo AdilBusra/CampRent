@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Store Detail - CampRent</title>
+  <title th:text="${store.namaToko} + ' - CampRent'">Store Detail - CampRent</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -11,138 +11,104 @@
 <div th:replace="~{fragments/customer-navbar :: customerNavbar('catalog')}"></div>
 
 <main class="pt-24 min-h-screen">
-
   <section class="max-w-7xl mx-auto px-8 pb-16">
 
-    <a th:href="@{/customer/katalog}"
-       class="text-sm font-semibold text-[#E27252] hover:underline">
+    <a th:href="@{/customer/katalog}" class="text-sm font-semibold text-[#E27252] hover:underline">
       ← Back to Catalog
     </a>
 
     <section class="mt-6 overflow-hidden rounded-3xl bg-white border border-gray-100 shadow-sm">
-
       <div class="relative h-64 overflow-hidden">
-
         <img th:src="@{/images/placeholders/store-banner.png}"
              alt="Store Banner"
              class="absolute inset-0 h-full w-full object-cover">
 
         <div class="absolute inset-0 bg-[#19381C]/65"></div>
 
-        <div class="relative z-10 h-full flex items-center justify-center text-white">
-
-          <div class="text-center">
-
-            <div class="mx-auto w-24 h-24 rounded-full bg-[#E27252] flex items-center justify-center text-3xl font-bold shadow-lg">
-              MA
-            </div>
-
-            <h1 class="mt-4 text-3xl font-bold">
-              Mountain Adventure
-            </h1>
-
-            <p class="text-white/80 text-sm mt-1">
-              Verified Store Partner
-            </p>
-
+        <div class="relative z-10 h-full flex items-center p-8 gap-6 text-white">
+          <div class="w-20 h-20 rounded-full bg-white text-[#19381C] flex items-center justify-center text-3xl font-bold shadow-md"
+               th:text="${#strings.substring(store.namaToko, 0, 1)}">
+            M
           </div>
 
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-3xl font-bold" th:text="${store.namaToko}">Nama Toko</h1>
+              <span th:if="${store.statusVerifikasi == 'VERIFIED'}"
+                    class="bg-blue-500 text-white text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-full shadow-sm">
+                ✓ Verified Partner
+              </span>
+            </div>
+            <p class="text-sm text-gray-200 mt-1" th:text="'📍 ' + ${store.alamat}">Alamat Toko</p>
+            <p class="text-xs text-green-300 mt-1 font-semibold" th:text="'📞 Hubungi: ' + ${store.nomorTelepon}">No Telepon</p>
+          </div>
         </div>
-
       </div>
-
-      <div class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        <div class="rounded-2xl bg-[#F4F4F2] p-5">
-          <p class="text-sm text-gray-500">Location</p>
-          <p class="mt-1 font-bold text-[#19381C]">Medan, Sumatera Utara</p>
-        </div>
-
-        <div class="rounded-2xl bg-[#F4F4F2] p-5">
-          <p class="text-sm text-gray-500">Phone Number</p>
-          <p class="mt-1 font-bold text-[#19381C]">0812-3456-7890</p>
-        </div>
-
-        <div class="rounded-2xl bg-[#F4F4F2] p-5">
-          <p class="text-sm text-gray-500">Status</p>
-          <p class="mt-1 font-bold text-green-700">Verified</p>
-        </div>
-
-      </div>
-
     </section>
 
-    <section class="mt-10">
-
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h2 class="text-2xl font-bold text-[#19381C]">
-            Available Equipment
-          </h2>
-
-          <p class="text-sm text-gray-500 mt-1">
-            Equipment provided by Mountain Adventure.
-          </p>
-        </div>
+    <div class="mt-12 flex items-center justify-between border-b border-gray-200 pb-4">
+      <div>
+        <h2 class="text-2xl font-bold text-[#19381C]">Equipment Catalog</h2>
+        <p class="text-xs text-gray-500 mt-1" th:text="'Menampilkan semua alat camping yang disewakan oleh ' + ${store.namaToko}">
+          Daftar peralatan ready sewa.
+        </p>
       </div>
+    </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div th:if="${#lists.isEmpty(listKatalog)}" class="mt-12 text-center py-12 bg-white rounded-3xl border border-dashed">
+      <span class="text-6xl">🏕️</span>
+      <h3 class="mt-4 text-lg font-bold text-gray-500">Belum ada peralatan sewa</h3>
+      <p class="text-sm text-gray-400">Toko ini belum mengunggah peralatan camping untuk saat ini.</p>
+    </div>
 
-        <article class="overflow-hidden rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-md transition">
+    <div th:if="${!#lists.isEmpty(listKatalog)}" class="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-          <div class="h-52 overflow-hidden bg-[#EAE5D8]">
-            <img th:src="@{/images/placeholders/equipment-placeholder.png}"
+      <div th:each="alat : ${listKatalog}" class="overflow-hidden rounded-3xl bg-white border border-gray-100 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-200">
+
+        <div>
+          <div class="relative h-48 bg-[#EAE5D8] flex items-center justify-center overflow-hidden">
+            <img th:if="${alat.fotoPeralatan != null}"
+                 th:src="@{'/uploads/peralatan/' + ${alat.fotoPeralatan}}"
                  alt="Equipment"
                  class="w-full h-full object-cover">
+            <span th:if="${alat.fotoPeralatan == null}" class="text-5xl">🏕️</span>
           </div>
 
           <div class="p-5">
-
             <div class="flex items-center justify-between">
-              <p class="text-xs font-bold text-[#E27252]">TENT</p>
+              <span class="text-xs font-bold text-[#E27252]"
+                    th:text="${alat.kategori != null ? alat.kategori.namaKategori : 'GENERAL'}">TENT</span>
 
-              <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                Stock 5
-              </span>
+              <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700"
+                    th:text="'Stock ' + ${alat.stok}">Stock 5</span>
             </div>
 
-            <h3 class="mt-3 text-xl font-bold text-[#19381C]">
-              Tent Dome Borneo 4
-            </h3>
+            <h3 class="mt-3 text-xl font-bold text-[#19381C] line-clamp-1" th:text="${alat.namaAlat}">Tent Dome Borneo 4</h3>
+            <p class="text-sm text-gray-500 mt-1" th:text="'Merek: ' + ${alat.merek}">Eiger</p>
 
-            <p class="text-sm text-gray-500 mt-1">
-              Eiger
-            </p>
-
-            <p class="mt-4 text-sm text-gray-500">
+            <p class="mt-4 text-sm text-gray-500 line-clamp-2" th:text="${alat.deskripsi}">
               Comfortable tent for camping with friends or family.
             </p>
+          </div>
+        </div>
 
-            <div class="mt-5 flex items-end justify-between">
-              <div>
-                <p class="text-xs text-gray-500">Rental Price</p>
-                <p class="text-xl font-bold text-[#E27252]">
-                  Rp 80.000
-                  <span class="text-sm text-gray-500 font-normal">/day</span>
-                </p>
-              </div>
-
-              <a th:href="@{/customer/equipment/1}"
-                 class="rounded-xl bg-[#19381C] px-4 py-3 text-sm text-white font-semibold hover:bg-[#254d29]">
-                Detail
-              </a>
-            </div>
-
+        <div class="p-5 border-t flex items-end justify-between bg-gray-50/50">
+          <div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Price per day</p>
+            <p class="text-xl font-extrabold text-[#E27252]">
+              Rp <span th:text="${#numbers.formatDecimal(alat.hargaSewaPerHari, 0, 'POINT', 0, 'COMMA')}">80.000</span>
+            </p>
           </div>
 
-        </article>
+          <a th:href="@{/customer/equipment/detail/{id}(id=${alat.id})}"
+             class="rounded-xl bg-[#12372A] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#194d3b] transition duration-200 shadow-sm">
+            View Detail
+          </a>
+        </div>
 
-      </div>
-
-    </section>
+      </div> </div>
 
   </section>
-
 </main>
 
 </body>
