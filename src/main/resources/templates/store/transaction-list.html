@@ -143,14 +143,14 @@
     /*<![CDATA[*/
     // ✅ DATA PERALATAN: Dari Controller ke JavaScript untuk dropdown
     window.dataPeralatanToko = [
-        /*[# th:each="alat : ${listAlat}"]*/
-        {
-            id: /*[[${alat.id}]]*/ 0,
-            namaAlat: /*[[${alat.namaAlat}]]*/ '',
-            hargaSewaPerHari: /*[[${alat.hargaSewaPerHari}]]*/ 0,
-            stok: /*[[${alat.stok}]]*/ 0
-        }/*[# th:if="${!#lists.isLast(alat)}"]*/,/*[/]*/
-        /*[/]*/
+        /*[# th:each="alat, stat : ${listAlat}"]*/
+{
+    id: /*[[${alat.id}]]*/ 0,
+    namaAlat: /*[[${alat.namaAlat}]]*/ '',
+    hargaSewaPerHari: /*[[${alat.hargaSewaPerHari}]]*/ 0,
+    stok: /*[[${alat.stok}]]*/ 0
+}/*[# th:if="${!stat.last}"]*/,/*[/]*/
+/*[/]*/
     ].filter(item => item.id !== 0); // Filter out any empty placeholder
 
     console.log("Data Peralatan Loaded:", window.dataPeralatanToko); // DEBUG
