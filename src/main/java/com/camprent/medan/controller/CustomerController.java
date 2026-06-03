@@ -24,6 +24,8 @@ public class CustomerController {
     private TransaksiService transaksiService;
 
 
+
+
     /**
      * Rute halaman Home/Dashboard utama milik Customer
      */
@@ -70,24 +72,6 @@ public class CustomerController {
         return "customer/katalog-list";
     }
 
-    /**
-     * BARU & AMAN: Menangani rute /customer/my-booking agar tidak memicu error 404 lagi.
-     * Mengarahkan langsung ke halaman riwayat pemesanan/nota transaksi milik customer.
-     */
-    @GetMapping("/my-booking")
-    public String customerMyBooking(Model model, Principal principal) {
-        String username = principal != null ? principal.getName() : null;
-        // ✅ ADD THIS BLOCK
-        if (username != null) {
-            List<Transaksi> bookings = transaksiService.getTransaksiByCustomer(username);
-            model.addAttribute("listBooking", bookings);
-        } else {
-            model.addAttribute("listBooking", java.util.Collections.emptyList());
-        }
-
-        return "customer/my-booking";
-    }
-
     @GetMapping("/categories")
     public String customerCategories(@RequestParam(value = "keyword", required = false) String keyword, Model model) {
         List<Kategori> listKategori;
@@ -108,6 +92,25 @@ public class CustomerController {
 
         model.addAttribute("listKategori", listKategori);
         return "customer/categories";
+    }
+
+    /**
+     * BARU & AMAN: Menangani rute /customer/my-booking agar tidak memicu error 404 lagi.
+     * Mengarahkan langsung ke halaman riwayat pemesanan/nota transaksi milik customer.
+     */
+
+
+    // Update method my-booking
+    @GetMapping("/my-booking")
+    public String customerMyBooking(Model model, Principal principal) {
+        // ✅ TAMBAH: Load actual bookings dari database
+        String username = principal != null ? principal.getName() : null;
+        if (username != null) {
+            List<Transaksi> bookings = transaksiService.getTransaksiByCustomer(username);
+            model.addAttribute("listBooking", bookings);
+        }
+
+        return "customer/my-booking";
     }
 
     @GetMapping("/profile")

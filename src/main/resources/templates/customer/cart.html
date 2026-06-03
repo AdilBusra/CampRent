@@ -30,45 +30,76 @@
         </th:block>
       </section>
 
+      <!-- ✅ UPDATED: Booking Summary dengan Form Checkout -->
       <aside class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 h-fit">
         <h2 class="text-2xl font-bold text-[#19381C]">Booking Summary</h2>
 
-        <div class="mt-4 rounded-xl border border-yellow-300 bg-yellow-50 p-4">
-          <p class="text-sm text-yellow-800 leading-relaxed">
-            ⚠ Booking must be picked up within 2 hours after confirmation.
+        <!-- ✅ VALIDATION: Store validation warning -->
+        <div id="storeValidationAlert" class="mt-4 hidden rounded-xl border border-red-300 bg-red-50 p-4">
+          <p class="text-sm text-red-800 font-semibold">
+            ⚠️ <span id="validationMessage">Validasi keranjang Anda...</span>
           </p>
         </div>
 
-        <div class="mt-6 space-y-4">
+        <!-- ✅ FORM: Booking checkout -->
+        <form id="checkoutForm" th:action="@{/customer/booking/checkout}" method="POST" class="mt-6 space-y-4">
+
           <div>
             <label class="block text-sm font-semibold mb-2">Rental Date</label>
-            <input id="cartRentalDate" type="date" onchange="updateCartSummary()" class="w-full rounded-xl border border-gray-200 px-4 py-3">
+            <input id="cartRentalDate"
+                   type="date"
+                   name="tanggalSewa"
+                   onchange="updateCartSummary(); validateCheckout();"
+                   class="w-full rounded-xl border border-gray-200 px-4 py-3"
+                   required>
           </div>
+
           <div>
             <label class="block text-sm font-semibold mb-2">Return Date</label>
-            <input id="cartReturnDate" type="date" onchange="updateCartSummary()" class="w-full rounded-xl border border-gray-200 px-4 py-3">
+            <input id="cartReturnDate"
+                   type="date"
+                   name="tanggalKembali"
+                   onchange="updateCartSummary(); validateCheckout();"
+                   class="w-full rounded-xl border border-gray-200 px-4 py-3"
+                   required>
           </div>
 
           <div class="rounded-xl bg-[#F4F4F2] p-4">
             <p class="text-sm text-gray-500">Rental Duration</p>
             <p id="cartDurationText" class="font-bold text-[#19381C]">Select rental and return date</p>
           </div>
+
+          <div class="border-t pt-5 space-y-3 text-sm">
+            <div class="flex justify-between text-gray-500">
+              <span>Duration</span>
+              <span id="summaryDuration">1 day</span>
+            </div>
+            <div class="flex justify-between text-gray-500">
+              <span>Total Items</span>
+              <span id="summaryItems">0 items</span>
+            </div>
+            <div class="flex justify-between font-bold text-lg pt-3 border-t">
+              <span>Total</span>
+              <span id="cartTotal" class="text-[#E27252]">Rp 0</span>
+            </div>
+          </div>
+
+          <!-- ✅ SUBMIT BUTTON: Disabled jika ada validation error -->
+          <button id="checkoutButton"
+                  type="submit"
+                  class="mt-6 w-full rounded-xl bg-[#E27252] px-5 py-4 text-white font-semibold hover:bg-[#c85f41] transition disabled:opacity-50 disabled:cursor-not-allowed">
+            Proceed to Booking
+          </button>
+
+        </form>
+
+        <!-- Info box -->
+        <div class="mt-6 rounded-xl border border-yellow-300 bg-yellow-50 p-4">
+          <p class="text-sm text-yellow-800">
+            ℹ️ Booking must be confirmed by the store within 2 hours or will be cancelled automatically.
+          </p>
         </div>
 
-        <div class="mt-6 border-t pt-5 space-y-3 text-sm">
-          <div class="flex justify-between text-gray-500">
-            <span>Duration</span>
-            <span id="summaryDuration">1 day</span>
-          </div>
-          <div class="flex justify-between font-bold text-lg pt-3 border-t">
-            <span>Total</span>
-            <span id="cartTotal" class="text-[#E27252]">Rp 0</span>
-          </div>
-        </div>
-
-        <a th:href="@{/customer/booking-success}" class="mt-6 block w-full rounded-xl bg-[#E27252] px-5 py-4 text-center text-white font-semibold hover:bg-[#c85f41]">
-          Proceed Booking
-        </a>
       </aside>
 
     </div>
@@ -76,6 +107,10 @@
 </main>
 
 <script>
+  // =========================================================
+  // ✅ HELPER FUNCTIONS
+  // =========================================================
+
   function getTodayDateString() {
       const today = new Date();
       const year = today.getFullYear();
@@ -102,9 +137,14 @@
       return diffDays > 0 ? diffDays : 1;
   }
 
+  // =========================================================
+  // ✅ CART SUMMARY UPDATE
+  // =========================================================
+
   function updateCartSummary() {
       const duration = calculateCartDuration();
       let totalBiayaSeluruhnya = 0;
+      let itemCount = 0;
 
       document.querySelectorAll('.data-cart-row').forEach(row => {
           const checkbox = row.querySelector('.item-checkbox');
@@ -112,20 +152,26 @@
               const harga = parseInt(row.getAttribute('data-price')) || 0;
               const qty = parseInt(row.getAttribute('data-qty')) || 1;
               totalBiayaSeluruhnya += (harga * qty * duration);
+              itemCount++;
           }
       });
 
       document.getElementById("cartTotal").innerText = formatRupiah(totalBiayaSeluruhnya);
       document.getElementById("summaryDuration").innerText = duration + " days";
+      document.getElementById("summaryItems").innerText = itemCount + " items";
   }
 
-  // ==========================================
-  // LOGIKA VALIDASI SATU TOKO (SINGLE VENDOR)
-  // ==========================================
-  function validateSingleStoreCheckout(event) {
-      const checkedRows = [];
+  // =========================================================
+  // ✅ VALIDATION: Cek apakah booking valid
+  // =========================================================
 
-      // 1. Kumpulkan semua baris item yang dicentang saja
+  function validateCheckout() {
+      const checkedRows = [];
+      const button = document.getElementById("checkoutButton");
+      const alert = document.getElementById("storeValidationAlert");
+      const message = document.getElementById("validationMessage");
+
+      // 1. Kumpulkan items yang dicentang
       document.querySelectorAll('.data-cart-row').forEach(row => {
           const checkbox = row.querySelector('.item-checkbox');
           if (checkbox && checkbox.checked) {
@@ -133,35 +179,73 @@
           }
       });
 
-      // Validasi 0: Jika tidak ada barang yang dicentang
+      // 2. Jika tidak ada item
       if (checkedRows.length === 0) {
-          alert("Silakan pilih minimal 1 peralatan camping untuk dibooking!");
-          event.preventDefault(); // Gagalkan submit form
+          button.disabled = true;
+          alert.classList.add("hidden");
           return false;
       }
 
-      // 2. Ambil store ID dari item pertama yang dicentang sebagai acuan utama
+      // 3. Ambil store ID dari item pertama
       const firstStoreId = checkedRows[0].getAttribute('data-store-id');
 
-      // 3. Bandingkan dengan store ID dari item tercentang lainnya
+      // 4. Validasi semua items dari toko yang sama
       for (let i = 1; i < checkedRows.length; i++) {
           const currentStoreId = checkedRows[i].getAttribute('data-store-id');
-
           if (currentStoreId !== firstStoreId) {
-              // 4. Jika beda toko, munculkan alert eror dan batalkan transaksi
-              alert("Gagal Booking! Kamu hanya bisa menyewa dari 1 toko yang sama dalam sekali transaksi. Silakan hilangkan centang pada item dari toko lain.");
-              event.preventDefault(); // Gagalkan submit form
+              button.disabled = true;
+              alert.classList.remove("hidden");
+              message.innerText = "❌ Items dari toko berbeda! Booking hanya bisa dari 1 toko dalam sekali transaksi.";
               return false;
           }
       }
 
-      return true; // Lolos validasi, lanjutkan proses ke backend
+      // 5. Jika valid
+      button.disabled = false;
+      alert.classList.add("hidden");
+      return true;
   }
+
+  // =========================================================
+  // ✅ FORM SUBMISSION dengan validasi final
+  // =========================================================
+
+  document.getElementById("checkoutForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      // Final validation
+      if (!validateCheckout()) {
+          alert("❌ Validasi gagal! Pastikan semua items dari toko yang sama.");
+          return false;
+      }
+
+      // Check tanggal
+      const rentalDate = document.getElementById("cartRentalDate").value;
+      const returnDate = document.getElementById("cartReturnDate").value;
+
+      if (!rentalDate || !returnDate) {
+          alert("❌ Pilih tanggal sewa dan kembali terlebih dahulu!");
+          return false;
+      }
+
+      if (rentalDate >= returnDate) {
+          alert("❌ Tanggal sewa harus sebelum tanggal kembali!");
+          return false;
+      }
+
+      // Jika semua valid, submit form
+      this.submit();
+  });
+
+  // =========================================================
+  // ✅ INITIALIZATION: Set up form saat halaman load
+  // =========================================================
 
   document.addEventListener("DOMContentLoaded", function() {
       const rentalDateInput = document.getElementById("cartRentalDate");
       const returnDateInput = document.getElementById("cartReturnDate");
 
+      // Set default: hari ini untuk rental date
       if (rentalDateInput) {
           const todayStr = getTodayDateString();
           rentalDateInput.value = todayStr;
@@ -172,17 +256,18 @@
           }
       }
 
-      // PASANG EVENT LISTENER PADA FORM BOOKING SUMMARY
-      // Ganti 'formBookingSummary' dengan ID form asli yang ada di cart.html kamu
-      const bookingForm = document.querySelector('form[action*="booking"]');
-      if (bookingForm) {
-          bookingForm.addEventListener("submit", validateSingleStoreCheckout);
-      }
-
+      // Initial validation
+      validateCheckout();
       updateCartSummary();
   });
 
-  document.addEventListener("DOMContentLoaded", updateCartSummary);
+  // Update validation setiap kali user check/uncheck item
+  document.addEventListener("change", function(event) {
+      if (event.target.classList.contains("item-checkbox")) {
+          validateCheckout();
+          updateCartSummary();
+      }
+  });
 </script>
 
 </body>
