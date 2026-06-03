@@ -19,51 +19,92 @@
         </div>
 
         <h1 class="mt-6 text-3xl font-bold text-[#19381C]">
-            Booking Submitted!
+            Booking Successfully Created!
         </h1>
 
         <p class="mt-3 text-gray-500">
-            Your equipment booking has been created successfully.
+            Your equipment booking has been submitted. The store will confirm within 2 hours.
         </p>
 
-        <div class="mt-8 rounded-2xl bg-[#F4F4F2] p-5 text-left space-y-4">
+        <!-- ✅ COUNTDOWN TIMER SECTION -->
+        <div class="mt-8 rounded-2xl bg-[#F4F4F2] p-6 text-left space-y-4">
+
+            <!-- Timer Display -->
+            <div class="text-center">
+                <p class="text-sm text-gray-500 mb-2">⏰ Store Confirmation Deadline</p>
+                <div class="text-5xl font-bold text-[#E27252] font-mono" id="timerDisplay">
+                    02:00:00
+                </div>
+                <p class="text-xs text-gray-400 mt-2">
+                    <span id="timerStatus">Waiting for store confirmation...</span>
+                </p>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 rounded-full h-2">
+                <div id="timerProgress" class="bg-[#E27252] h-2 rounded-full transition-all duration-1000" style="width: 100%"></div>
+            </div>
+
+            <!-- Info -->
+            <div class="rounded-xl bg-white p-4 border border-gray-200">
+                <p class="text-sm text-gray-600">
+                    📌 <strong>Booking Status:</strong> <span class="text-yellow-600 font-semibold">PENDING</span>
+                </p>
+                <p class="text-sm text-gray-600 mt-1">
+                    If the store doesn't confirm within 2 hours, your booking will be automatically cancelled.
+                </p>
+            </div>
+        </div>
+
+        <!-- ✅ BOOKING DETAILS CARD -->
+        <div class="mt-8 rounded-2xl bg-[#F4F4F2] p-5 text-left space-y-4" id="bookingDetailsCard">
 
             <div class="flex justify-between">
                 <span class="text-gray-500">Booking ID</span>
-                <span class="font-bold text-[#19381C]">#BK001</span>
+                <span class="font-bold text-[#19381C]" id="displayBookingId">#--</span>
             </div>
 
             <div class="flex justify-between">
                 <span class="text-gray-500">Store</span>
-                <span class="font-bold text-[#19381C]">Mountain Adventure</span>
+                <span class="font-bold text-[#19381C]" id="displayStoreName">Loading...</span>
             </div>
 
             <div class="flex justify-between">
+                <span class="text-gray-500">Items Count</span>
+                <span class="font-bold text-[#19381C]" id="displayItemCount">--</span>
+            </div>
+
+            <div class="flex justify-between">
+                <span class="text-gray-500">Total Price</span>
+                <span class="font-bold text-[#E27252]" id="displayTotalPrice">Rp 0</span>
+            </div>
+
+            <div class="flex justify-between pt-3 border-t">
                 <span class="text-gray-500">Status</span>
                 <span class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-bold text-yellow-700">
                     PENDING
                 </span>
             </div>
-
         </div>
 
-        <div class="mt-6 rounded-xl border border-yellow-300 bg-yellow-50 p-4 text-left">
-            <p class="text-sm text-yellow-800">
-                ⚠ Please pick up your equipment within 2 hours after booking confirmation.
-                If it is not picked up, the booking may be cancelled automatically.
+        <!-- ✅ WARNING BOX -->
+        <div class="mt-6 rounded-xl border border-orange-300 bg-orange-50 p-4 text-left">
+            <p class="text-sm text-orange-800">
+                ⚠️ <strong>Important:</strong> Please wait for the store to confirm your booking. You can check the status on the "My Booking" page. Do not close this tab if waiting for confirmation.
             </p>
         </div>
 
+        <!-- ✅ ACTION BUTTONS -->
         <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
 
             <a th:href="@{/customer/my-booking}"
-               class="rounded-xl bg-[#E27252] px-6 py-3 text-white font-semibold hover:bg-[#c85f41]">
+               class="rounded-xl bg-[#E27252] px-6 py-3 text-white font-semibold hover:bg-[#c85f41] transition text-center">
                 View My Booking
             </a>
 
             <a th:href="@{/customer/katalog}"
-               class="rounded-xl border border-gray-200 px-6 py-3 font-semibold hover:bg-[#F4F4F2]">
-                Back to Catalog
+               class="rounded-xl border border-gray-200 px-6 py-3 font-semibold hover:bg-[#F4F4F2] transition text-center">
+                Continue Shopping
             </a>
 
         </div>
@@ -71,6 +112,116 @@
     </section>
 
 </main>
+
+<!-- ✅ JAVASCRIPT: 2-HOUR COUNTDOWN TIMER -->
+<script>
+    // Get booking ID dari URL parameter
+    const bookingId = new URLSearchParams(window.location.search).get('id');
+
+    // =====================================================
+    // COUNTDOWN TIMER LOGIC
+    // =====================================================
+
+    const EXPIRY_MINUTES = 120; // 2 hours = 120 minutes
+    const TIMER_INTERVAL = 1000; // Update setiap 1 detik
+
+    let remainingSeconds = EXPIRY_MINUTES * 60; // Convert to seconds
+
+    function formatTime(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function updateTimer() {
+        if (remainingSeconds <= 0) {
+            // ❌ TIME EXPIRED
+            document.getElementById("timerDisplay").innerHTML = "00:00:00";
+            document.getElementById("timerDisplay").style.color = "#EF4444"; // Red
+            document.getElementById("timerStatus").innerHTML = "❌ Booking expired! Your booking has been cancelled.";
+            document.getElementById("timerProgress").style.width = "0%";
+            document.getElementById("timerProgress").style.backgroundColor = "#EF4444";
+
+            // Auto-redirect after 3 seconds
+            setTimeout(() => {
+                window.location.href = "/customer/my-booking";
+            }, 3000);
+
+            return;
+        }
+
+        // Update display
+        document.getElementById("timerDisplay").innerHTML = formatTime(remainingSeconds);
+
+        // Update progress bar (from 100% to 0%)
+        const progressPercent = (remainingSeconds / (EXPIRY_MINUTES * 60)) * 100;
+        document.getElementById("timerProgress").style.width = progressPercent + "%";
+
+        // Change color saat 15 menit terakhir
+        if (remainingSeconds <= 900) { // 15 minutes
+            document.getElementById("timerDisplay").style.color = "#F59E0B"; // Amber
+            document.getElementById("timerProgress").style.backgroundColor = "#F59E0B";
+            document.getElementById("timerStatus").innerHTML = "⏳ Only " + Math.ceil(remainingSeconds / 60) + " minutes left!";
+        }
+
+        remainingSeconds--;
+    }
+
+    // Start timer
+    updateTimer(); // Call once immediately
+    const timerInterval = setInterval(updateTimer, TIMER_INTERVAL);
+
+    // =====================================================
+    // LOAD BOOKING DETAILS (AJAX)
+    // =====================================================
+
+    if (bookingId) {
+        document.getElementById("displayBookingId").innerText = "#BK" + bookingId;
+
+        // Optional: Load booking details dari backend
+        // fetch(`/customer/booking/details/${bookingId}`)
+        //     .then(res => res.json())
+        //     .then(data => {
+        //         document.getElementById("displayStoreName").innerText = data.storeName;
+        //         document.getElementById("displayItemCount").innerText = data.itemCount + " items";
+        //         document.getElementById("displayTotalPrice").innerText = "Rp " + data.totalPrice.toLocaleString("id-ID");
+        //     })
+        //     .catch(err => console.error("Error loading booking details:", err));
+    }
+
+    // =====================================================
+    // AUTO-REFRESH STATUS setiap 30 detik
+    // =====================================================
+
+    setInterval(() => {
+        // Check apakah booking sudah dikonfirmasi oleh store
+        if (bookingId) {
+            fetch(`/customer/booking/${bookingId}/remaining-time`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.isExpired) {
+                        // Booking expired, redirect
+                        window.location.href = "/customer/my-booking";
+                    } else if (data.isConfirmed) {
+                        // Store sudah confirm, show success message
+                        document.getElementById("timerStatus").innerHTML = "✅ Store has confirmed your booking!";
+                        clearInterval(timerInterval);
+                    }
+                })
+                .catch(err => console.log("Status check failed:", err));
+        }
+    }, 30000); // Every 30 seconds
+
+    // =====================================================
+    // CLEANUP saat page ditinggalkan
+    // =====================================================
+
+    window.addEventListener("beforeunload", () => {
+        clearInterval(timerInterval);
+    });
+</script>
 
 </body>
 </html>

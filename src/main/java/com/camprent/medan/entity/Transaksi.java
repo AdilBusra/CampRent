@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "transaksis")
@@ -38,7 +39,7 @@ public class Transaksi {
     private BigDecimal totalHarga;
 
     @Column(name = "status_transaksi", nullable = false)
-    private String statusTransaksi = "PENDING"; // PENDING, DIPAKAI, SELESAI, TERLAMBAT
+    private String statusTransaksi = "PENDING"; // PENDING, DIPAKAI, SELESAI, TERLAMBAT, EXPIRED, CANCELLED
 
     // Tambahkan kolom untuk Offline
     @Column(name = "nama_customer")
@@ -49,4 +50,36 @@ public class Transaksi {
 
     @Column(name = "source")
     private String source; // "ONLINE" atau "OFFLINE"
+
+    // ✅ FIELDS BARU: Untuk tracking booking lifetime
+    @Column(name = "waktu_pemesanan", nullable = false, updatable = false)
+    private LocalDateTime waktuPemesanan = LocalDateTime.now();
+
+    @Column(name = "waktu_expire")
+    private LocalDateTime waktuExpire;
+
+    // ✅ Helper method: Calculate remaining minutes for booking
+    public long getRemainingMinutes() {
+        if (waktuExpire == null) {
+            return 0;
+        }
+        long minutesLeft = java.time.temporal.ChronoUnit.MINUTES.between(
+                LocalDateTime.now(),
+                waktuExpire
+        );
+        return Math.max(0, minutesLeft);
+    }
+
+    // ✅ Helper method: Check if booking has expired
+    public boolean isExpired() {
+        if (waktuExpire == null) {
+            return false;
+        }
+        return LocalDateTime.now().isAfter(waktuExpire);
+    }
+
+    // ✅ Helper method: Check if still pending
+    public boolean isPending() {
+        return "PENDING".equals(statusTransaksi);
+    }
 }
