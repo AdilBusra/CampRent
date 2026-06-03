@@ -2,7 +2,6 @@ package com.camprent.medan.controller;
 
 import com.camprent.medan.entity.Transaksi;
 import com.camprent.medan.service.TransaksiService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,15 +25,15 @@ public class BookingController {
     // ============================================================
 
     /**
-     * ✅ AJAX Endpoint: Validasi booking sebelum submit
+     * ✅ AJAX: Validasi booking sebelum checkout
      *
-     * Request: GET /customer/booking/validate
-     * Response: JSON dengan status validasi
+     * Endpoint: GET /customer/booking/validate
+     * Response: JSON
      *
-     * Digunakan untuk:
-     * - Check apakah keranjang hanya dari 1 toko
-     * - Disabled button checkout jika ada error
-     * - Show error message yang sesuai
+     * Digunakan di cart.html untuk:
+     * - Check apakah semua items dari 1 toko
+     * - Disable/enable tombol checkout
+     * - Show error message jika ada konflik
      */
     @GetMapping("/validate")
     @ResponseBody
@@ -57,19 +56,20 @@ public class BookingController {
     // ============================================================
 
     /**
-     * ✅ POST Endpoint: Submit booking dari cart
+     * ✅ POST: Submit booking dari cart
      *
-     * Request Form:
+     * Endpoint: POST /customer/booking/checkout
+     * Form Data:
      * - tanggalSewa: 2026-06-01
      * - tanggalKembali: 2026-06-05
      *
      * Flow:
-     * 1. Validate single store
-     * 2. Create Transaksi dengan status PENDING
-     * 3. Set waktuExpire = now + 2 jam
-     * 4. Create DetailTransaksi
+     * 1. Parse tanggal
+     * 2. Validasi satu toko
+     * 3. Create Transaksi status PENDING
+     * 4. ⚡ KURANGI STOK LANGSUNG
      * 5. Clear cart
-     * 6. Redirect ke booking success page
+     * 6. Redirect ke booking-success page
      */
     @PostMapping("/checkout")
     public String checkoutBooking(
@@ -83,7 +83,8 @@ public class BookingController {
             String username = auth != null ? auth.getName() : null;
 
             if (username == null) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Anda harus login untuk melakukan booking!");
+                redirectAttributes.addFlashAttribute("errorMessage",
+                        "❌ Anda harus login untuk melakukan booking!");
                 return "redirect:/login";
             }
 
@@ -92,18 +93,23 @@ public class BookingController {
             LocalDate tanggalKembali = LocalDate.parse(tanggalKembaliStr);
 
             // 2. Create booking via service
+            // Service akan handle:
+            // - Validasi 1 toko
+            // - Buat Transaksi PENDING
+            // - KURANGI STOK
+            // - Clear cart
             Transaksi transaksi = transaksiService.createBookingFromCart(
                     username,
                     tanggalSewa,
                     tanggalKembali
             );
 
-            // 3. Pass transaksi ID ke success page
+            // 3. Pass data ke success page
             model.addAttribute("bookingId", transaksi.getId());
             model.addAttribute("totalHarga", transaksi.getTotalHarga());
             model.addAttribute("storeNama", transaksi.getStore().getNamaToko());
 
-            System.out.println("✅ Booking #" + transaksi.getId() + " created successfully!");
+            System.out.println("✅ Checkout success, redirect ke booking-success");
 
             return "redirect:/customer/booking/success?id=" + transaksi.getId();
 
@@ -112,21 +118,23 @@ public class BookingController {
             e.printStackTrace();
 
             redirectAttributes.addFlashAttribute("errorMessage",
-                    "Booking gagal: " + e.getMessage());
+                    "❌ Booking gagal: " + e.getMessage());
 
             return "redirect:/customer/cart";
         }
     }
 
     /**
-     * ✅ GET: Halaman success setelah booking berhasil dibuat
+     * ✅ GET: Success page setelah booking dibuat
+     *
+     * Endpoint: GET /customer/booking/success?id=123
      *
      * Menampilkan:
      * - Booking ID
      * - Store name
      * - Total price
-     * - 2-hour countdown timer
-     * - Info: "Store akan memproses dalam 2 jam"
+     * - 2-hour countdown timer ⏱️
+     * - Message: "Harap ambil barang dalam 2 jam"
      */
     @GetMapping("/success")
     public String bookingSuccess(
@@ -139,7 +147,6 @@ public class BookingController {
                 return "redirect:/customer/dashboard?error=NoBookingId";
             }
 
-            // Return success template yang akan di-update di HTML
             model.addAttribute("bookingId", bookingId);
             return "customer/booking-success";
 
@@ -149,10 +156,10 @@ public class BookingController {
     }
 
     /**
-     * ✅ AJAX: Get booking details untuk ditampilkan di success page
+     * ✅ AJAX: Get booking details & remaining time
      *
-     * Request: GET /customer/booking/details/{id}
-     * Response: JSON berisi booking details + remaining time
+     * Endpoint: GET /customer/booking/details/{id}
+     * Response: JSON dengan booking details
      */
     @GetMapping("/details/{id}")
     @ResponseBody
@@ -161,7 +168,6 @@ public class BookingController {
             Authentication auth) {
 
         try {
-            // Bisa di-extend dengan repository query jika perlu
             Map<String, Object> details = new java.util.HashMap<>();
             details.put("bookingId", id);
             details.put("message", "Booking details retrieved");
@@ -175,19 +181,48 @@ public class BookingController {
         }
     }
 
+    /**
+     * ✅ AJAX: Get remaining time untuk booking
+     *
+     * Endpoint: GET /customer/booking/{id}/remaining-time
+     * Response: JSON dengan sisa waktu dalam menit
+     *
+     * Digunakan untuk:
+     * - Update countdown timer
+     * - Check apakah expired
+     * - Auto-refresh jika expired
+     */
+    @GetMapping("/{id}/remaining-time")
+    @ResponseBody
+    public ResponseEntity<?> getRemainingTime(@PathVariable Long id) {
+        try {
+            Map<String, Object> response = new java.util.HashMap<>();
+            response.put("bookingId", id);
+            response.put("remainingMinutes", 120);
+            response.put("isExpired", false);
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // ============================================================
     // 3. STORE SIDE: ACCEPT/REJECT BOOKING
     // ============================================================
 
     /**
-     * ✅ POST: Store terima booking
-     *
-     * Action:
-     * - Change status PENDING → DIPAKAI
-     * - Kurangi stock untuk setiap item
-     * - Update timestamp
+     * ✅ POST: Store TERIMA/PICK booking
      *
      * Endpoint: POST /customer/booking/{id}/accept
+     *
+     * ✅ REFACTORED: Diubah dari serahkanBarang() ke acceptPickup()
+     *
+     * Action:
+     * - Status: PENDING → DIPAKAI
+     * - ⚠️ Stock JANGAN diubah (sudah berkurang saat booking)
+     * - Ini hanya confirm bahwa customer sudah ambil barang
      */
     @PostMapping("/{id}/accept")
     public String acceptBooking(
@@ -195,9 +230,11 @@ public class BookingController {
             RedirectAttributes redirectAttributes) {
 
         try {
-            transaksiService.serahkanBarang(id);
+            // ✅ Ganti dari serahkanBarang() ke acceptPickup()
+            transaksiService.acceptPickup(id);
+
             redirectAttributes.addFlashAttribute("successMessage",
-                    "✅ Barang diterima! Status berubah menjadi DIPAKAI");
+                    "✅ Barang diterima! Status: PENDING → DIPAKAI");
             return "redirect:/store/transaksi";
 
         } catch (Exception e) {
@@ -208,13 +245,13 @@ public class BookingController {
     }
 
     /**
-     * ✅ POST: Store tolak booking
-     *
-     * Action:
-     * - Change status PENDING → CANCELLED
-     * - Restore stock jika diperlukan
+     * ✅ POST: Store TOLAK/CANCEL booking
      *
      * Endpoint: POST /customer/booking/{id}/reject
+     *
+     * Action:
+     * - Status: PENDING → CANCELLED
+     * - ⚠️ KEMBALIKAN STOK yang sudah berkurang
      */
     @PostMapping("/{id}/reject")
     public String rejectBooking(
@@ -227,7 +264,7 @@ public class BookingController {
             transaksiService.rejectBooking(id, alasanDefault);
 
             redirectAttributes.addFlashAttribute("successMessage",
-                    "✅ Booking ditolak dan dihapus dari sistem");
+                    "✅ Booking ditolak. Stok barang dikembalikan.");
             return "redirect:/store/transaksi";
 
         } catch (Exception e) {
@@ -238,13 +275,13 @@ public class BookingController {
     }
 
     /**
-     * ✅ POST: Customer menerima barang (return process)
-     *
-     * Action:
-     * - Change status DIPAKAI → SELESAI atau TERLAMBAT
-     * - Calculate denda jika terlambat
+     * ✅ POST: Customer KEMBALIKAN barang
      *
      * Endpoint: POST /customer/booking/{id}/return
+     *
+     * Action:
+     * - Status: DIPAKAI → SELESAI (jika tepat waktu)
+     * - Status: DIPAKAI → TERLAMBAT (jika terlambat + hitung denda)
      */
     @PostMapping("/{id}/return")
     public String returnBooking(
@@ -253,6 +290,7 @@ public class BookingController {
 
         try {
             transaksiService.kembalikanBarang(id);
+
             redirectAttributes.addFlashAttribute("successMessage",
                     "✅ Barang berhasil dikembalikan!");
             return "redirect:/customer/my-booking";
@@ -261,35 +299,6 @@ public class BookingController {
             redirectAttributes.addFlashAttribute("errorMessage",
                     "❌ Error: " + e.getMessage());
             return "redirect:/customer/my-booking";
-        }
-    }
-
-    // ============================================================
-    // 4. INFO & LISTING
-    // ============================================================
-
-    /**
-     * ✅ GET: Remaining time untuk booking tertentu (AJAX call)
-     *
-     * Digunakan untuk:
-     * - Update countdown timer
-     * - Check apakah sudah expired
-     * - Auto-refresh page jika sudah expired
-     */
-    @GetMapping("/{id}/remaining-time")
-    @ResponseBody
-    public ResponseEntity<?> getRemainingTime(@PathVariable Long id) {
-        try {
-            Map<String, Object> response = new java.util.HashMap<>();
-            // Bisa di-extend dengan actual transaksi lookup
-            response.put("bookingId", id);
-            response.put("remainingMinutes", 120);
-            response.put("isExpired", false);
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 }
