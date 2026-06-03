@@ -124,18 +124,26 @@ public class StoreTransaksiController {
     }
 
     // ✅ PERBAIKAN: Simpan offline rental dengan stock tracking
+    // ✅ PERBAIKAN: Mapping nama parameter dari HTML agar pas dengan Controller
     @PostMapping("/save-offline")
-    public String simpanOfflineRental(@RequestParam String customerName,
-                                      @RequestParam String phoneNumber,
-                                      @RequestParam String tanggalSewa,
-                                      @RequestParam String tanggalKembali,
-                                      @RequestParam List<Long> peralatanIds,
-                                      @RequestParam List<Integer> kuantitas,
+    public String simpanOfflineRental(@RequestParam("customerName") String customerName,
+                                      @RequestParam("phoneNumber") String phoneNumber, // Pastikan isinya "phoneNumber" sesuai nama input di HTML kamu
+                                      @RequestParam("tanggalSewa") String tanggalSewa,
+                                      @RequestParam("tanggalKembali") String tanggalKembali,
+                                      @RequestParam(value = "peralatanIds", required = false) List<Long> peralatanIds,
+                                      @RequestParam(value = "kuantitas", required = false) List<Integer> kuantitas,
                                       Principal principal) {
 
+        // Validasi pencegahan jika toko belum memilih alat camp sama sekali
+        if (peralatanIds == null || peralatanIds.isEmpty()) {
+            return "redirect:/store/transaksi?error=no_items";
+        }
+
+        // Panggil service untuk menyimpan data transaksi offline
         storeTransaksiService.createOfflineRental(principal.getName(), customerName,
                 phoneNumber, tanggalSewa, tanggalKembali, peralatanIds, kuantitas);
 
+        // Kembalikan ke halaman daftar transaksi toko
         return "redirect:/store/transaksi";
     }
 }

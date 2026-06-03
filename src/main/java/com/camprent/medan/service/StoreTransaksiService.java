@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
@@ -26,117 +27,139 @@ public class StoreTransaksiService {
     @Autowired
     private StoreRepository storeRepository;
 
-    @Autowired private PeralatanRepository peralatanRepository; // Pastikan ini sudah ada!
+    @Autowired
+    private PeralatanRepository peralatanRepository;
 
     @Autowired
     private DetailTransaksiRepository detailTransaksiRepository;
 
-    // 1. Ambil list transaksi khusus untuk store yang sedang login
+    /**
+     * 1. Ambil list transaksi khusus untuk store yang sedang login
+     */
     public List<Transaksi> getTransaksiByStore(String username) {
         Store store = storeRepository.findByUserUsername(username).orElse(null);
         return transaksiRepository.findByStoreOrderByIdDesc(store);
     }
 
-    // 2. Update status saat customer mengambil alat camping (PENDING -> DIPAKAI)
-    @Transactional
-    public void serahkanBarang(Long transaksiId) {
-        Transaksi transaksi = transaksiRepository.findById(transaksiId)
-                .orElseThrow(() -> new IllegalArgumentException("Transaksi tidak ditemukan"));
-
-        if ("PENDING".equals(transaksi.getStatusTransaksi())) {
-            transaksi.setStatusTransaksi("DIPAKAI");
-            transaksiRepository.save(transaksi);
-        }
-    }
-
-    // 3. CORE LOGIC: Update status saat pengembalian barang + HITUNG DENDA OTOMATIS
-    @Transactional
-    public void kembalikanBarang(Long transaksiId) {
-        Transaksi transaksi = transaksiRepository.findById(transaksiId)
-                .orElseThrow(() -> new IllegalArgumentException("Transaksi tidak ditemukan"));
-
-        if (!"DIPAKAI".equals(transaksi.getStatusTransaksi()) && !"TERLAMBAT".equals(transaksi.getStatusTransaksi())) {
-            throw new IllegalStateException("Transaksi tidak dalam status disewa!");
-        }
-
-        LocalDate hariIni = LocalDate.now();
-        LocalDate batasKembali = transaksi.getTanggalKembali();
-
-        // Cek apakah pengembaliannya terlambat dari tenggat waktu
-        if (hariIni.isAfter(batasKembali)) {
-            // Hitung selisih hari keterlambatan
-            long hariTerlambat = ChronoUnit.DAYS.between(batasKembali, hariIni);
-
-            // Ambil semua detail item dalam transaksi ini untuk menjumlahkan denda kerusakannya/hari
-            List<DetailTransaksi> details = detailTransaksiRepository.findByTransaksi(transaksi);
-            BigDecimal totalDendaAkumulasi = BigDecimal.ZERO;
-
-            for (DetailTransaksi detail : details) {
-                // Rumus PBO: Denda per alat x Kuantitas x Jumlah Hari Terlambat
-                BigDecimal dendaPerItem = detail.getPeralatan().getDendaKerusakan()
-                        .multiply(BigDecimal.valueOf(detail.getKuantitas()))
-                        .multiply(BigDecimal.valueOf(hariTerlambat));
-
-                totalDendaAkumulasi = totalDendaAkumulasi.add(dendaPerItem);
-            }
-
-            // Tambahkan denda ke total harga transaksi akhir
-            transaksi.setTotalHarga(transaksi.getTotalHarga().add(totalDendaAkumulasi));
-            transaksi.setStatusTransaksi("TERLAMBAT");
-        } else {
-            transaksi.setStatusTransaksi("SELESAI");
-        }
-
-        transaksiRepository.save(transaksi);
-    }
-
-    // Tambahkan di dalam StoreTransaksiService.java
-
+    /**
+     * 2. Membuat Transaksi Offline (Walk-in Customer)
+     * Tanpa memerlukan Customer ID / Akun Dummy (Customer diset ke null)
+     */
     @Transactional
     public void createOfflineRental(String username, String customerName, String phone,
                                     String tglSewa, String tglKembali,
                                     List<Long> ids, List<Integer> qtys) {
 
-        Store store = storeRepository.findByUserUsername(username).orElseThrow();
+        // Cari data toko berdasarkan user store yang sedang login
+        Store store = storeRepository.findByUserUsername(username)
+                .orElseThrow(() -> new RuntimeException("Data toko tidak ditemukan!"));
 
+        LocalDate rentDate = LocalDate.parse(tglSewa);
+        LocalDate returnDate = LocalDate.parse(tglKembali);
+
+        // Hitung selisih hari sewa
+        long durasiHari = ChronoUnit.DAYS.between(rentDate, returnDate);
+        if (durasiHari <= 0) {
+            durasiHari = 1; // Proteksi minimal sewa adalah 1 hari
+        }
+
+        // Inisialisasi object Transaksi baru sesuai struktur entity kamu
         Transaksi tr = new Transaksi();
         tr.setStore(store);
+
+        // 💡 KUNCI UTAMA: Karena nullable = true, kita bisa set null dengan aman di sini
+        tr.setCustomer(null);
+
         tr.setNamaCustomer(customerName);
         tr.setNoHpCustomer(phone);
         tr.setSource("OFFLINE");
-        tr.setTanggalSewa(LocalDate.parse(tglSewa));
-        tr.setTanggalKembali(LocalDate.parse(tglKembali));
-        tr.setStatusTransaksi("DIPAKAI");
+        tr.setTanggalSewa(rentDate);
+        tr.setTanggalKembali(returnDate);
+        tr.setStatusTransaksi("DIPAKAI"); // Transaksi offline walk-in langsung berstatus DIPAKAI
+        tr.setWaktuPemesanan(LocalDateTime.now());
+        tr.setWaktuExpire(null); // Offline tidak memerlukan batas waktu kedaluwarsa transfer booking
 
-        // 1. Inisialisasi total harga
-        BigDecimal total = BigDecimal.ZERO;
+        // Inisialisasi awal total harga sebelum loop item
+        BigDecimal totalHargaSewa = BigDecimal.ZERO;
 
-        // Simpan transaksi dulu supaya dapat ID-nya
+        // Simpan transaksi pertama kali demi mendapatkan generated ID untuk relasi detail transaksi
         tr = transaksiRepository.save(tr);
 
-        // 2. Loop untuk simpan detail dan kurangi stok
-        for(int i = 0; i < ids.size(); i++) {
-            Peralatan alat = peralatanRepository.findById(ids.get(i)).orElseThrow();
+        // Loop item alat kamp yang disewa offline
+        for (int i = 0; i < ids.size(); i++) {
+            Long peralatanId = ids.get(i);
+            Integer kuantitasSewa = qtys.get(i);
 
-            // Kurangi stok
-            alat.setStok(alat.getStok() - qtys.get(i));
+            Peralatan alat = peralatanRepository.findById(peralatanId)
+                    .orElseThrow(() -> new RuntimeException("Peralatan dengan ID " + peralatanId + " tidak ditemukan!"));
+
+            // Validasi ketersediaan stok barang toko fisik
+            if (alat.getStok() < kuantitasSewa) {
+                throw new RuntimeException("Stok untuk alat '" + alat.getNamaAlat() + "' tidak mencukupi!");
+            }
+
+            // Kurangi stok inventory toko secara real-time
+            alat.setStok(alat.getStok() - kuantitasSewa);
             peralatanRepository.save(alat);
 
-            // Hitung total (Harga sewa x jumlah)
-            // Pastikan nama method di Peralatan sesuai (misal: getHargaSewaPerHari)
-            BigDecimal subtotal = alat.getHargaSewaPerHari().multiply(BigDecimal.valueOf(qtys.get(i)));
-            total = total.add(subtotal);
+            // Hitung subtotal: (Harga sewa per hari * kuantitas unit * jumlah hari)
+            BigDecimal subtotalAlat = alat.getHargaSewaPerHari()
+                    .multiply(BigDecimal.valueOf(kuantitasSewa))
+                    .multiply(BigDecimal.valueOf(durasiHari));
 
-            // 3. Simpan Detail Transaksi
+            totalHargaSewa = totalHargaSewa.add(subtotalAlat);
+
+            // Masukkan record ke tabel pivot detail_transaksis
             DetailTransaksi detail = new DetailTransaksi();
             detail.setTransaksi(tr);
             detail.setPeralatan(alat);
-            detail.setKuantitas(qtys.get(i));
+            detail.setKuantitas(kuantitasSewa);
             detailTransaksiRepository.save(detail);
         }
 
-        // 4. Update total harga ke transaksi
-        tr.setTotalHarga(total);
+        // Update nominal total_harga riil hasil akumulasi perhitungan ke transaksi utama
+        tr.setTotalHarga(totalHargaSewa);
         transaksiRepository.save(tr);
+    }
+
+    /**
+     * 3. Aksi Serahkan Barang (Khusus pesanan ONLINE yang di-pickup)
+     */
+    @Transactional
+    public void serahkanBarang(Long transaksiId) {
+        Transaksi tr = transaksiRepository.findById(transaksiId)
+                .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan!"));
+
+        if ("PENDING".equals(tr.getStatusTransaksi())) {
+            tr.setStatusTransaksi("DIPAKAI");
+            transaksiRepository.save(tr);
+        }
+    }
+
+    /**
+     * 4. Aksi Terima Pengembalian Barang (Berlaku untuk ONLINE maupun OFFLINE)
+     * Mengembalikan kuantitas alat otomatis ke inventory toko asal
+     */
+    @Transactional
+    public void kembalikanBarang(Long transaksiId) {
+        Transaksi tr = transaksiRepository.findById(transaksiId)
+                .orElseThrow(() -> new RuntimeException("Transaksi tidak ditemukan!"));
+
+        // Lakukan pengembalian jika statusnya barang sedang dibawa/dipakai
+        if ("DIPAKAI".equals(tr.getStatusTransaksi()) || "TERLAMBAT".equals(tr.getStatusTransaksi())) {
+
+            List<DetailTransaksi> details = detailTransaksiRepository.findByTransaksi(tr);
+
+            // Kembalikan stok item ke database
+            for (DetailTransaksi detail : details) {
+                Peralatan alat = detail.getPeralatan();
+                alat.setStok(alat.getStok() + detail.getKuantitas());
+                peralatanRepository.save(alat);
+            }
+
+            // Tandai status sewa telah selesai penuh
+            tr.setStatusTransaksi("SELESAI");
+            transaksiRepository.save(tr);
+        }
     }
 }

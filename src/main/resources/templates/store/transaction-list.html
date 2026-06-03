@@ -31,13 +31,12 @@
         </button>
     </div>
 
-    <section class="bg-white rounded-2xl shadow-sm border border-[#12372A]/10 overflow-hidden">
+    <section class="rounded-2xl bg-white p-6 shadow-sm border border-gray-100">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-
-                <thead class="bg-[#12372A] text-white">
-                <tr>
-                    <th class="px-5 py-4 font-semibold">Transaction ID</th>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                <tr class="border-b border-gray-200 text-xs font-semibold uppercase tracking-wider text-gray-500 bg-gray-50/50">
+                    <th class="px-5 py-4 font-semibold">ID Transaksi</th>
                     <th class="px-5 py-4 font-semibold">Source</th>
                     <th class="px-5 py-4 font-semibold">Customer</th>
                     <th class="px-5 py-4 font-semibold">Rental Date</th>
@@ -62,8 +61,11 @@
                     </td>
                 </tr>
 
-                <tr th:each="transaksi : ${listTransaksi}" class="hover:bg-[#F8F5EC] transition cursor-pointer"
-                    th:onclick="openDetailModal([[${transaksi.id}]], [[${transaksi.source}]])">
+                <tr th:each="transaksi : ${listTransaksi}"
+                    class="hover:bg-[#F8F5EC] transition cursor-pointer transaction-row"
+                    th:data-id="${transaksi.id}"
+                    th:data-source="${transaksi.source}"
+                    onclick="handleRowClick(this)">
 
                     <td class="px-5 py-4 font-semibold">
                         <span th:text="${transaksi.source == 'ONLINE'} ? '#ON' + ${transaksi.id} : '#OFF' + ${transaksi.id}">
@@ -123,7 +125,6 @@
         </div>
     </section>
 
-
 </main>
 
 <div class="lg:pl-64 mt-auto">
@@ -135,6 +136,18 @@
 <div th:replace="~{fragments/offline-detail-modal :: offlineDetailModal}"></div>
 
 <script>
+    // Handler untuk membaca data attributes saat baris tabel di-klik
+    function handleRowClick(rowElement) {
+        // Ambil data-id dan data-source dari elemen HTML
+        const id = rowElement.getAttribute('data-id');
+        const source = rowElement.getAttribute('data-source');
+
+        // Konversi ID ke tipe Number sesuai kebutuhan fungsi pencarian baris data
+        if (id && source) {
+            openDetailModal(Number(id), source);
+        }
+    }
+
     // A. Kunci Keyboard dari karakter minus atau aneh
     function blockMinusAndZero(e) {
         if (["-", "+", "e", "E", ".", ","].includes(e.key)) {
@@ -244,7 +257,7 @@
     ].filter(item => item.id !== 0);
 
     window.dataTransaksi = [
-        /*[# th:each="transaksi : ${listTransaksi}"]*/
+        /*[# th:each="transaksi, stat : ${listTransaksi}"]*/
         {
             id: /*[[${transaksi.id}]]*/ 0,
             source: /*[[${transaksi.source}]]*/ '',
@@ -254,7 +267,7 @@
             tanggalSewa: /*[[${transaksi.tanggalSewa}]]*/ '',
             tanggalKembali: /*[[${transaksi.tanggalKembali}]]*/ '',
             totalHarga: /*[[${transaksi.totalHarga}]]*/ 0
-        }/*[# th:if="${!#lists.isLast(transaksi)}"]*/,/*[/]*/
+        }/*[# th:if="${!stat.last}"]*/,/*[/]*/
         /*[/]*/
     ].filter(item => item.id !== 0);
     /*]]>*/
