@@ -1,11 +1,8 @@
 package com.camprent.medan.controller;
 
-import com.camprent.medan.entity.KeranjangItem;
-import com.camprent.medan.entity.Peralatan;
-import com.camprent.medan.entity.Customer;
-import com.camprent.medan.entity.Kategori;
-import com.camprent.medan.entity.Store;
+import com.camprent.medan.entity.*;
 import com.camprent.medan.service.CustomerService;
+import com.camprent.medan.service.TransaksiService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +19,10 @@ public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
+
+    @Autowired
+    private TransaksiService transaksiService;
+
 
     /**
      * Rute halaman Home/Dashboard utama milik Customer
@@ -75,12 +76,13 @@ public class CustomerController {
      */
     @GetMapping("/my-booking")
     public String customerMyBooking(Model model, Principal principal) {
-        if (principal != null) {
-            Customer currentCustomer = customerService.getProfileByUsername(principal.getName());
-            model.addAttribute("customer", currentCustomer);
+        String username = principal != null ? principal.getName() : null;
+        // ✅ ADD THIS BLOCK
+        if (username != null) {
+            List<Transaksi> bookings = transaksiService.getTransaksiByCustomer(username);
+            model.addAttribute("listBooking", bookings);
         } else {
-            Customer currentCustomer = customerService.getProfileByUsername("amelia");
-            model.addAttribute("customer", currentCustomer);
+            model.addAttribute("listBooking", java.util.Collections.emptyList());
         }
 
         return "customer/my-booking";

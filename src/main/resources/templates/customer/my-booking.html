@@ -21,7 +21,18 @@
       </p>
     </section>
 
-    <section class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <!-- ✅ EMPTY STATE -->
+    <div th:if="${#lists.isEmpty(listBooking)}" class="bg-white rounded-3xl p-12 text-center border shadow-sm">
+      <div class="text-6xl mb-4">📋</div>
+      <h3 class="text-xl font-bold text-[#19381C]">No Bookings Yet</h3>
+      <p class="text-gray-500 mt-2">You haven't made any equipment bookings.</p>
+      <a th:href="@{/customer/katalog}" class="mt-5 inline-block rounded-xl bg-[#E27252] px-6 py-3 text-white font-semibold">
+        Start Booking Now
+      </a>
+    </div>
+
+    <!-- ✅ BOOKINGS TABLE -->
+    <div th:if="${!#lists.isEmpty(listBooking)}" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
 
       <div class="overflow-x-auto">
 
@@ -35,226 +46,172 @@
             <th class="px-5 py-4 text-sm font-semibold">Return Date</th>
             <th class="px-5 py-4 text-sm font-semibold">Total Price</th>
             <th class="px-5 py-4 text-sm font-semibold">Status</th>
-            <th class="px-5 py-4 text-sm font-semibold">Detail</th>
+            <th class="px-5 py-4 text-sm font-semibold">Time Left</th>
+            <th class="px-5 py-4 text-sm font-semibold text-right">Action</th>
           </tr>
           </thead>
 
           <tbody class="divide-y divide-gray-100">
 
-          <!-- Empty state nanti dipakai backend -->
-          <tr th:if="${listBooking != null and #lists.isEmpty(listBooking)}">
-            <td colspan="7" class="px-5 py-16">
-              <div class="flex flex-col items-center justify-center text-center">
-                <div class="text-6xl mb-4">📋</div>
+          <!-- ✅ LOOP: Setiap booking dari database -->
+          <tr th:each="transaksi : ${listBooking}" class="hover:bg-[#F4F4F2] transition">
 
-                <h3 class="text-xl font-bold text-[#19381C]">
-                  No Bookings Yet
-                </h3>
-
-                <p class="mt-2 text-sm text-gray-500 max-w-md">
-                  Your booking history will appear here after you reserve equipment.
-                </p>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Dummy row FE preview -->
-          <tr onclick="openCustomerBookingDetailModal()"
-              class="hover:bg-[#F4F4F2] transition cursor-pointer">
-
-            <td class="px-5 py-4 font-semibold">
-              #BK001
+            <!-- Booking ID -->
+            <td class="px-5 py-4 font-semibold text-[#19381C]">
+              #BK<span th:text="${transaksi.id}">001</span>
             </td>
 
+            <!-- Store Name -->
             <td class="px-5 py-4">
-              <p class="font-semibold">Mountain Adventure</p>
-              <p class="text-xs text-gray-500">Medan</p>
+              <p class="font-semibold" th:text="${transaksi.store.namaToko}">Mountain Adventure</p>
+              <p class="text-xs text-gray-500" th:text="${transaksi.store.alamat}">Medan</p>
             </td>
 
-            <td class="px-5 py-4">
+            <!-- Rental Date -->
+            <td class="px-5 py-4" th:text="${#temporals.format(transaksi.tanggalSewa, 'yyyy-MM-dd')}">
               2026-05-29
             </td>
 
-            <td class="px-5 py-4">
+            <!-- Return Date -->
+            <td class="px-5 py-4" th:text="${#temporals.format(transaksi.tanggalKembali, 'yyyy-MM-dd')}">
               2026-06-01
             </td>
 
-            <td class="px-5 py-4 font-semibold">
-              Rp250.000
+            <!-- Total Price -->
+            <td class="px-5 py-4 font-semibold text-[#E27252]">
+              Rp <span th:text="${#numbers.formatDecimal(transaksi.totalHarga, 0, 'COMMA', 0, 'POINT')}">250000</span>
             </td>
 
+            <!-- Status Badge -->
             <td class="px-5 py-4">
-                            <span class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
-                                PENDING
-                            </span>
+              <span th:classappend="${transaksi.statusTransaksi == 'PENDING'} ? ' bg-yellow-100 text-yellow-700' :
+                                    (${transaksi.statusTransaksi == 'DIPAKAI'} ? ' bg-blue-100 text-blue-700' :
+                                    (${transaksi.statusTransaksi == 'SELESAI'} ? ' bg-green-100 text-green-700' :
+                                    (${transaksi.statusTransaksi == 'TERLAMBAT'} ? ' bg-red-100 text-red-700' :
+                                    ' bg-gray-100 text-gray-700')))"
+                    class="rounded-full px-3 py-1 text-xs font-semibold">
+                <span th:text="${transaksi.statusTransaksi}">PENDING</span>
+              </span>
             </td>
 
+            <!-- ✅ Time Left (PENDING only) -->
             <td class="px-5 py-4">
+              <span th:if="${transaksi.statusTransaksi == 'PENDING'}"
+                    class="text-xs font-semibold text-orange-600"
+                    th:text="${'~' + transaksi.getRemainingMinutes() + ' min'}">
+                ~120 min
+              </span>
+              <span th:unless="${transaksi.statusTransaksi == 'PENDING'}"
+                    class="text-xs text-gray-400">--</span>
+            </td>
+
+            <!-- Actions -->
+            <td class="px-5 py-4 text-right">
               <button type="button"
-                      onclick="event.stopPropagation(); openCustomerBookingDetailModal();"
-                      class="rounded-lg bg-[#E27252] px-3 py-2 text-sm font-semibold text-white hover:bg-[#c85f41]">
-                View Detail
-              </button>
-            </td>
-
-          </tr>
-
-          <tr onclick="openCustomerBookingDetailModal()"
-              class="hover:bg-[#F4F4F2] transition cursor-pointer">
-
-            <td class="px-5 py-4 font-semibold">
-              #BK002
-            </td>
-
-            <td class="px-5 py-4">
-              <p class="font-semibold">Outdoor Medan</p>
-              <p class="text-xs text-gray-500">Medan</p>
-            </td>
-
-            <td class="px-5 py-4">
-              2026-05-25
-            </td>
-
-            <td class="px-5 py-4">
-              2026-05-27
-            </td>
-
-            <td class="px-5 py-4 font-semibold">
-              Rp150.000
-            </td>
-
-            <td class="px-5 py-4">
-                            <span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
-                                DIPAKAI
-                            </span>
-            </td>
-
-            <td class="px-5 py-4">
-              <button type="button"
-                      onclick="event.stopPropagation(); openCustomerBookingDetailModal();"
-                      class="rounded-lg bg-[#E27252] px-3 py-2 text-sm font-semibold text-white hover:bg-[#c85f41]">
-                View Detail
+                      onclick="openBookingModal([[${transaksi.id}]], [[${transaksi.statusTransaksi}]])"
+                      class="rounded-lg bg-[#E27252] px-3 py-2 text-sm font-semibold text-white hover:bg-[#c85f41] transition">
+                View
               </button>
             </td>
 
           </tr>
 
           </tbody>
-
         </table>
 
       </div>
 
-    </section>
+    </div>
 
   </section>
 
 </main>
 
-<!-- Booking Detail Modal -->
-<div id="customerBookingDetailModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
+<!-- ✅ MODAL: Booking Detail -->
+<div id="bookingDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 px-4">
 
   <div class="w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
 
-    <div class="flex items-center justify-between bg-[#19381C] px-6 py-5 text-white">
+    <div class="bg-[#19381C] px-6 py-5 text-white flex justify-between items-center">
       <div>
         <h2 class="text-2xl font-bold">Booking Detail</h2>
-        <p class="text-sm text-white/70">Your rental reservation information</p>
+        <p class="text-sm text-white/70">Review your rental reservation information</p>
       </div>
-
-      <button type="button"
-              onclick="closeCustomerBookingDetailModal()"
-              class="text-3xl leading-none hover:text-[#E27252]">
-        ×
-      </button>
+      <button onclick="closeBookingModal()" class="text-3xl leading-none hover:text-[#E27252]">×</button>
     </div>
 
     <div class="p-6 space-y-6">
 
-      <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Info Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
         <div class="rounded-xl bg-[#F4F4F2] p-4">
           <p class="text-sm text-gray-500">Booking ID</p>
-          <p class="font-bold text-lg">#BK001</p>
+          <p id="modalBookingId" class="font-bold text-lg mt-1">#BK001</p>
         </div>
 
         <div class="rounded-xl bg-[#F4F4F2] p-4">
           <p class="text-sm text-gray-500">Status</p>
-          <span class="mt-1 inline-block rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
-                        PENDING
-                    </span>
+          <span id="modalStatus" class="mt-1 inline-block rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+            PENDING
+          </span>
         </div>
 
         <div class="rounded-xl bg-[#F4F4F2] p-4">
           <p class="text-sm text-gray-500">Store</p>
-          <p class="font-bold">Mountain Adventure</p>
-          <p class="text-sm text-gray-500">Medan</p>
+          <p id="modalStoreName" class="font-bold mt-1">Mountain Adventure</p>
         </div>
 
         <div class="rounded-xl bg-[#F4F4F2] p-4">
-          <p class="text-sm text-gray-500">Pickup Deadline</p>
-          <p class="font-bold text-red-600">
-            2 hours after booking confirmation
-          </p>
+          <p class="text-sm text-gray-500">Time Left (PENDING)</p>
+          <p id="modalTimeLeft" class="font-bold text-orange-600 mt-1">--</p>
         </div>
 
         <div class="rounded-xl bg-[#F4F4F2] p-4">
           <p class="text-sm text-gray-500">Rent Date</p>
-          <p class="font-bold">2026-05-29</p>
+          <p id="modalRentDate" class="font-bold mt-1">2026-05-29</p>
         </div>
 
         <div class="rounded-xl bg-[#F4F4F2] p-4">
           <p class="text-sm text-gray-500">Return Date</p>
-          <p class="font-bold">2026-06-01</p>
+          <p id="modalReturnDate" class="font-bold mt-1">2026-06-01</p>
         </div>
 
-      </section>
+      </div>
 
-      <section class="rounded-2xl border border-gray-100 overflow-hidden">
+      <!-- Items List -->
+      <div class="rounded-2xl border border-gray-100 overflow-hidden">
         <div class="bg-[#F4F4F2] px-5 py-4">
-          <h3 class="font-bold text-[#19381C]">Booked Items</h3>
+          <h3 class="font-bold">Booked Items</h3>
         </div>
-
-        <div class="divide-y divide-gray-100">
-
-          <div class="flex items-center justify-between px-5 py-4">
-            <div>
-              <p class="font-semibold">Tent Dome Borneo 4</p>
-              <p class="text-sm text-gray-500">Qty 1 × Rp80.000/day</p>
-            </div>
-            <p class="font-semibold">Rp80.000</p>
-          </div>
-
-          <div class="flex items-center justify-between px-5 py-4">
-            <div>
-              <p class="font-semibold">Carrier Eiger 60L</p>
-              <p class="text-sm text-gray-500">Qty 1 × Rp70.000/day</p>
-            </div>
-            <p class="font-semibold">Rp70.000</p>
-          </div>
-
+        <div id="modalItemsList" class="divide-y divide-gray-100">
+          <!-- Items akan di-populate via JavaScript -->
         </div>
-
         <div class="flex items-center justify-between bg-[#F4F4F2] px-5 py-4">
           <p class="font-bold">Total Booking</p>
-          <p class="text-xl font-bold text-[#E27252]">Rp250.000</p>
+          <p id="modalTotalPrice" class="text-xl font-bold text-[#E27252]">Rp 0</p>
         </div>
-      </section>
+      </div>
 
-      <section class="rounded-xl border border-yellow-300 bg-yellow-50 p-4">
-        <p class="text-sm text-yellow-800">
-          ⚠ Please pick up your equipment within 2 hours after booking confirmation.
-          Payment is not processed inside CampRent.
+      <!-- Info Box -->
+      <div class="rounded-xl border border-blue-200 bg-blue-50 p-4">
+        <p id="modalInfoBox" class="text-sm text-blue-700">
+          ℹ️ Store will confirm your booking within 2 hours. You can check the status here.
         </p>
-      </section>
+      </div>
 
-      <div class="flex justify-end">
-        <button type="button"
-                onclick="closeCustomerBookingDetailModal()"
-                class="rounded-xl border border-gray-200 px-5 py-3 font-semibold hover:bg-[#F4F4F2]">
+      <!-- Action Buttons -->
+      <div class="flex justify-end gap-3">
+        <button onclick="closeBookingModal()" class="rounded-xl border px-5 py-3 font-semibold hover:bg-[#F4F4F2] transition">
           Close
         </button>
+
+        <!-- Return button (DIPAKAI status only) -->
+        <form id="returnForm" method="POST" style="display: none;">
+          <button type="submit" class="rounded-xl bg-green-600 px-5 py-3 text-white font-semibold hover:bg-green-700 transition">
+            Mark as Returned
+          </button>
+        </form>
       </div>
 
     </div>
@@ -264,17 +221,36 @@
 </div>
 
 <script>
-  function openCustomerBookingDetailModal() {
-      const modal = document.getElementById("customerBookingDetailModal");
-      modal.classList.remove("hidden");
-      modal.classList.add("flex");
+  function openBookingModal(bookingId, status) {
+    // Update modal content berdasarkan booking ID (bisa diambil dari backend via AJAX)
+    document.getElementById("modalBookingId").innerText = "#BK" + bookingId;
+
+    // TODO: Fetch data dari backend untuk populate modal details
+    // fetch(`/customer/booking/details/${bookingId}`)
+    //     .then(res => res.json())
+    //     .then(data => { ... })
+
+    document.getElementById("bookingDetailModal").classList.remove("hidden");
+    document.getElementById("bookingDetailModal").classList.add("flex");
   }
 
-  function closeCustomerBookingDetailModal() {
-      const modal = document.getElementById("customerBookingDetailModal");
-      modal.classList.add("hidden");
-      modal.classList.remove("flex");
+  function closeBookingModal() {
+    const modal = document.getElementById("bookingDetailModal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
   }
+
+  // Close modal dengan ESC key
+  document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") {
+      closeBookingModal();
+    }
+  });
+
+  // Auto-refresh status setiap 30 detik
+  setInterval(() => {
+    // Bisa di-extend untuk auto-update status tanpa reload halaman
+  }, 30000);
 </script>
 
 </body>
