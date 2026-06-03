@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -45,71 +44,71 @@ public class TransaksiService {
     // ============================================================
 
     /**
-     * ✅ PERBAIKAN UTAMA: Validasi bahwa customer hanya booking dari 1 toko
+     * ✅ Validasi: Customer hanya booking dari 1 toko
      *
      * @param username - Customer yang sedang login
-     * @return Map berisi:
-     *         - "valid": true/false
-     *         - "storeId": Long (store yang menjadi tujuan booking)
-     *         - "message": String (error message jika ada)
-     *         - "itemCount": int (jumlah item yang akan di-booking)
+     * @return Map berisi status validasi
      */
     public Map<String, Object> validateBookingBeforeCheckout(String username) {
         Map<String, Object> result = new HashMap<>();
 
-        // 1. Ambil customer
-        Customer customer = customerRepository.findByUserUsername(username)
-                .orElseThrow(() -> new RuntimeException("Customer tidak ditemukan"));
+        try {
+            // 1. Ambil customer
+            Customer customer = customerRepository.findByUserUsername(username)
+                    .orElseThrow(() -> new RuntimeException("Customer tidak ditemukan"));
 
-        // 2. Ambil semua item di keranjang
-        List<KeranjangItem> keranjang = keranjangRepository.findByCustomer(customer);
+            // 2. Ambil semua item di keranjang
+            List<KeranjangItem> keranjang = keranjangRepository.findByCustomer(customer);
 
-        if (keranjang.isEmpty()) {
+            if (keranjang.isEmpty()) {
+                result.put("valid", false);
+                result.put("message", "Keranjang Anda kosong!");
+                return result;
+            }
+
+            // 3. Kumpulkan semua store_id dari items
+            java.util.Set<Long> storeIds = new java.util.HashSet<>();
+            for (KeranjangItem item : keranjang) {
+                storeIds.add(item.getPeralatan().getStore().getId());
+            }
+
+            // 4. Validasi: hanya 1 toko?
+            if (storeIds.size() > 1) {
+                result.put("valid", false);
+                result.put("message",
+                        "❌ Booking gagal! Anda hanya bisa menyewa dari 1 toko yang sama dalam sekali transaksi. " +
+                                "Silakan hapus item dari toko lain.");
+                result.put("conflictingStores", storeIds.size());
+                return result;
+            }
+
+            // 5. Valid - return store ID
+            Long storeId = storeIds.iterator().next();
+            result.put("valid", true);
+            result.put("storeId", storeId);
+            result.put("itemCount", keranjang.size());
+            result.put("message", "✅ Validasi satu toko berhasil!");
+
+            return result;
+
+        } catch (Exception e) {
             result.put("valid", false);
-            result.put("message", "Keranjang Anda kosong!");
+            result.put("message", "Error: " + e.getMessage());
             return result;
         }
-
-        // 3. Kumpulkan semua store_id dari items di keranjang
-        java.util.Set<Long> storeIds = new java.util.HashSet<>();
-        for (KeranjangItem item : keranjang) {
-            storeIds.add(item.getPeralatan().getStore().getId());
-        }
-
-        // 4. Cek apakah ada lebih dari 1 toko
-        if (storeIds.size() > 1) {
-            result.put("valid", false);
-            result.put("message", "Booking gagal! Anda hanya bisa menyewa dari 1 toko yang sama dalam sekali transaksi. Silakan hapus item dari toko lain.");
-            result.put("conflictingStores", storeIds.size());
-            return result;
-        }
-
-        // 5. Jika hanya 1 toko, return storeId
-        Long storeId = storeIds.iterator().next();
-        result.put("valid", true);
-        result.put("storeId", storeId);
-        result.put("itemCount", keranjang.size());
-        result.put("message", "Validasi satu toko berhasil ✓");
-
-        return result;
     }
 
     /**
-     * ✅ CORE LOGIC: Buat Transaksi dari Cart Item
+     * ✅ CORE LOGIC: Buat Transaksi dari Cart
      *
-     * Flow:
+     * Flow YANG BENAR:
      * 1. Validasi satu toko
      * 2. Hitung total harga
-     * 3. Create Transaksi dengan status PENDING
-     * 4. Set waktuExpire = sekarang + 2 jam
-     * 5. Create DetailTransaksi untuk setiap item
-     * 6. Jangan ubah stock (hanya berubah saat DIPAKAI)
-     * 7. Clear keranjang setelah sukses
-     *
-     * @param username - Customer yang login
-     * @param tanggalSewa - Tanggal mulai sewa
-     * @param tanggalKembali - Tanggal pengembalian
-     * @return Transaksi yang sudah dibuat
+     * 3. Create Transaksi status PENDING
+     * 4. Set waktuExpire = now + 2 jam
+     * 5. ⚡ KURANGI STOCK LANGSUNG (BERBEDA DARI SEBELUMNYA!)
+     * 6. Create DetailTransaksi
+     * 7. Clear keranjang
      */
     @Transactional
     public Transaksi createBookingFromCart(String username, LocalDate tanggalSewa, LocalDate tanggalKembali) {
@@ -149,14 +148,14 @@ public class TransaksiService {
             totalHarga = totalHarga.add(subtotal);
         }
 
-        // 5. Create Transaksi baru
+        // 5. Create Transaksi baru dengan status PENDING
         Transaksi transaksi = new Transaksi();
         transaksi.setCustomer(customer);
         transaksi.setStore(store);
         transaksi.setTanggalSewa(tanggalSewa);
         transaksi.setTanggalKembali(tanggalKembali);
         transaksi.setTotalHarga(totalHarga);
-        transaksi.setStatusTransaksi("PENDING");
+        transaksi.setStatusTransaksi("PENDING"); // ✅ Status PENDING (bukan DIPAKAI)
         transaksi.setSource("ONLINE");
         transaksi.setWaktuPemesanan(LocalDateTime.now());
 
@@ -165,7 +164,21 @@ public class TransaksiService {
 
         Transaksi savedTransaksi = transaksiRepository.save(transaksi);
 
-        // 6. Create DetailTransaksi untuk setiap item
+        // 6. ⚡ KURANGI STOCK LANGSUNG (PERBEDAAN DARI SEBELUMNYA)
+        System.out.println("⚡ [STEP 6] Kurangi stok barang yang dibooking...");
+        for (KeranjangItem item : keranjang) {
+            Peralatan alat = item.getPeralatan();
+            int stokSebelum = alat.getStok();
+
+            // KURANGI STOCK SEKARANG
+            alat.setStok(alat.getStok() - item.getKuantitas());
+            peralatanRepository.save(alat);
+
+            System.out.println("   ✅ " + alat.getNamaAlat() +
+                    ": " + stokSebelum + " → " + alat.getStok());
+        }
+
+        // 7. Create DetailTransaksi untuk setiap item
         for (KeranjangItem item : keranjang) {
             DetailTransaksi detail = new DetailTransaksi();
             detail.setTransaksi(savedTransaksi);
@@ -174,16 +187,19 @@ public class TransaksiService {
             detailTransaksiRepository.save(detail);
         }
 
-        // 7. ✅ PENTING: Jangan update stock saat PENDING, hanya saat DIPAKAI!
-
         // 8. Clear keranjang
         keranjangRepository.deleteByCustomer(customer);
 
-        System.out.println("✅ Booking berhasil dibuat!");
-        System.out.println("   ID: " + savedTransaksi.getId());
-        System.out.println("   Store: " + store.getNamaToko());
+        // Log
+        System.out.println("\n✅ ═════════════════════════════════════════");
+        System.out.println("✅ BOOKING BERHASIL DIBUAT!");
+        System.out.println("✅ ═════════════════════════════════════════");
+        System.out.println("   Booking ID: #" + savedTransaksi.getId());
+        System.out.println("   Toko: " + store.getNamaToko());
         System.out.println("   Total: Rp" + totalHarga);
-        System.out.println("   Expire: " + savedTransaksi.getWaktuExpire());
+        System.out.println("   Status: PENDING (Menunggu customer ambil dalam 2 jam)");
+        System.out.println("   Timer Expire: " + savedTransaksi.getWaktuExpire());
+        System.out.println("✅ ═════════════════════════════════════════\n");
 
         return savedTransaksi;
     }
@@ -193,11 +209,14 @@ public class TransaksiService {
     // ============================================================
 
     /**
-     * ✅ PERBAIKAN: Saat store terima barang, update status PENDING → DIPAKAI
-     * DAN kurangi stock untuk item-item yang disewa
+     * ✅ REFACTORED: Store terima barang (customer ambil)
+     *
+     * BERBEDA DARI SEBELUMNYA:
+     * - LAMA: PENDING → DIPAKAI + KURANGI STOCK
+     * - BARU: PENDING → DIPAKAI (JANGAN KURANGI STOCK, SUDAH BERKURANG!)
      */
     @Transactional
-    public void serahkanBarang(Long transaksiId) {
+    public void acceptPickup(Long transaksiId) {
         Transaksi transaksi = transaksiRepository.findById(transaksiId)
                 .orElseThrow(() -> new IllegalArgumentException("Transaksi tidak ditemukan"));
 
@@ -205,25 +224,22 @@ public class TransaksiService {
             throw new IllegalStateException("Hanya transaksi PENDING yang bisa diterima!");
         }
 
-        // ✅ Update stock pada saat ini (DIPAKAI)
-        List<DetailTransaksi> details = detailTransaksiRepository.findByTransaksi(transaksi);
-        for (DetailTransaksi detail : details) {
-            Peralatan alat = detail.getPeralatan();
-            alat.setStok(alat.getStok() - detail.getKuantitas());
-            peralatanRepository.save(alat);
-        }
+        // ⚠️ PENTING: JANGAN KURANGI STOCK DI SINI!
+        // Stock SUDAH berkurang saat customer booking dibuat!
+        // Di sini hanya confirm bahwa customer sudah ambil barangnya
 
-        // Update status
+        // HANYA update status
         transaksi.setStatusTransaksi("DIPAKAI");
         transaksiRepository.save(transaksi);
 
-        System.out.println("✅ Barang diterima & stock berkurang untuk transaksi #" + transaksiId);
+        System.out.println("✅ Barang diterima! Status: PENDING → DIPAKAI");
+        System.out.println("   Stock TETAP berkurang (sudah berkurang saat booking)");
     }
 
     /**
-     * ✅ PERBAIKAN: Saat pengembalian, hitung denda jika terlambat
-     * DIPAKAI → SELESAI (jika tepat waktu)
-     * DIPAKAI → TERLAMBAT (jika lewat + tambah denda)
+     * ✅ Saat pengembalian, hitung denda jika terlambat
+     * DIPAKAI → SELESAI (tepat waktu)
+     * DIPAKAI → TERLAMBAT (lewat + denda)
      */
     @Transactional
     public void kembalikanBarang(Long transaksiId) {
@@ -242,12 +258,12 @@ public class TransaksiService {
             // Hitung selisih hari keterlambatan
             long hariTerlambat = ChronoUnit.DAYS.between(batasKembali, hariIni);
 
-            // Ambil semua detail item untuk menghitung denda
+            // Ambil detail item untuk menghitung denda
             List<DetailTransaksi> details = detailTransaksiRepository.findByTransaksi(transaksi);
             BigDecimal totalDendaAkumulasi = BigDecimal.ZERO;
 
             for (DetailTransaksi detail : details) {
-                // Rumus: Denda per alat x Kuantitas x Jumlah Hari Terlambat
+                // Rumus: Denda per alat × Kuantitas × Jumlah Hari Terlambat
                 BigDecimal dendaPerItem = detail.getPeralatan().getDendaKerusakan()
                         .multiply(BigDecimal.valueOf(detail.getKuantitas()))
                         .multiply(BigDecimal.valueOf(hariTerlambat));
@@ -264,16 +280,18 @@ public class TransaksiService {
             System.out.println("   Denda tambahan: Rp" + totalDendaAkumulasi);
         } else {
             transaksi.setStatusTransaksi("SELESAI");
-            System.out.println("✅ Pengembalian tepat waktu, transaksi SELESAI");
+            System.out.println("✅ Pengembalian tepat waktu! Status: DIPAKAI → SELESAI");
         }
 
         transaksiRepository.save(transaksi);
     }
 
     /**
-     * ✅ BARU: Store bisa REJECT booking jika ada masalah
-     * PENDING → CANCELLED
-     * Stock dikembalikan jika sudah berubah
+     * ✅ BARU: Store REJECT/CANCEL booking
+     *
+     * Action:
+     * - Status: PENDING → CANCELLED
+     * - ⚠️ KEMBALIKAN STOK yang sudah berkurang saat booking
      */
     @Transactional
     public void rejectBooking(Long transaksiId, String alasan) {
@@ -284,10 +302,27 @@ public class TransaksiService {
             throw new IllegalStateException("Hanya booking PENDING yang bisa ditolak!");
         }
 
+        // ⚠️ KEMBALIKAN STOK yang sudah berkurang
+        System.out.println("🔄 Kembalikan stok yang sudah berkurang...");
+        List<DetailTransaksi> details = detailTransaksiRepository.findByTransaksi(transaksi);
+        for (DetailTransaksi detail : details) {
+            Peralatan alat = detail.getPeralatan();
+            int stokSebelum = alat.getStok();
+
+            // KEMBALIKAN STOCK
+            alat.setStok(alat.getStok() + detail.getKuantitas());
+            peralatanRepository.save(alat);
+
+            System.out.println("   ✅ " + alat.getNamaAlat() +
+                    ": " + stokSebelum + " → " + alat.getStok());
+        }
+
+        // Update status
         transaksi.setStatusTransaksi("CANCELLED");
         transaksiRepository.save(transaksi);
 
-        System.out.println("❌ Booking ditolak: " + alasan);
+        System.out.println("✅ Booking dibatalkan/ditolak");
+        System.out.println("   Alasan: " + alasan);
     }
 
     // ============================================================
@@ -295,15 +330,15 @@ public class TransaksiService {
     // ============================================================
 
     /**
-     * ✅ SCHEDULED TASK: Jalankan setiap 5 menit untuk check booking expired
+     * ✅ SCHEDULED TASK: Auto-expire booking yang sudah 2 jam
      *
-     * Logic:
-     * - Find all PENDING bookings dengan waktuExpire < sekarang
-     * - Change status PENDING → EXPIRED
-     * - Log untuk audit
+     * Jalankan setiap 5 menit untuk:
+     * - Find PENDING bookings dengan waktuExpire < sekarang
+     * - Change status: PENDING → EXPIRED
+     * - ⚠️ KEMBALIKAN STOK yang sudah berkurang
      */
     @Transactional
-    @Scheduled(fixedRate = 300000) // Jalankan setiap 5 menit (300 detik)
+    @Scheduled(fixedRate = 300000) // 5 menit = 300000 ms
     public void checkAndExpireBookings() {
         LocalDateTime now = LocalDateTime.now();
 
@@ -314,16 +349,36 @@ public class TransaksiService {
                 .toList();
 
         if (!expiredBookings.isEmpty()) {
-            System.out.println("⏰ [AUTO-EXPIRE CHECK] Menemukan " + expiredBookings.size() + " booking yang expired");
+            System.out.println("\n⏰ ═══════════════════════════════════════════");
+            System.out.println("⏰ [AUTO-EXPIRE CHECK] Menemukan " + expiredBookings.size() + " booking yang EXPIRED");
+            System.out.println("⏰ ═══════════════════════════════════════════");
 
             for (Transaksi transaksi : expiredBookings) {
+                System.out.println("\n🔄 Processing expired booking #" + transaksi.getId());
+
+                // ⚠️ KEMBALIKAN STOK
+                List<DetailTransaksi> details = detailTransaksiRepository.findByTransaksi(transaksi);
+                for (DetailTransaksi detail : details) {
+                    Peralatan alat = detail.getPeralatan();
+                    int stokSebelum = alat.getStok();
+
+                    alat.setStok(alat.getStok() + detail.getKuantitas());
+                    peralatanRepository.save(alat);
+
+                    System.out.println("   ✅ " + alat.getNamaAlat() +
+                            ": " + stokSebelum + " → " + alat.getStok());
+                }
+
+                // Update status
                 transaksi.setStatusTransaksi("EXPIRED");
                 transaksiRepository.save(transaksi);
 
-                System.out.println("❌ EXPIRED - Booking #" + transaksi.getId()
-                        + " dari " + transaksi.getStore().getNamaToko()
-                        + " (Expired at: " + transaksi.getWaktuExpire() + ")");
+                System.out.println("   ❌ Status: PENDING → EXPIRED");
+                System.out.println("   Alasan: Customer tidak ambil dalam 2 jam");
+                System.out.println("   Expired at: " + transaksi.getWaktuExpire());
             }
+
+            System.out.println("⏰ ═══════════════════════════════════════════\n");
         }
     }
 
@@ -354,14 +409,14 @@ public class TransaksiService {
     }
 
     /**
-     * Get semua transaksi untuk admin
+     * Get semua transaksi (admin)
      */
     public List<Transaksi> getAllTransaksi() {
         return transaksiRepository.findAll();
     }
 
     /**
-     * Get detail items dari satu transaksi
+     * Get detail items dari transaksi
      */
     public List<DetailTransaksi> getDetailTransaksi(Long transaksiId) {
         Transaksi transaksi = transaksiRepository.findById(transaksiId).orElse(null);
