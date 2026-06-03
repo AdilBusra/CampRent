@@ -14,6 +14,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Optional;
 
 @Service
 public class TransaksiService {
@@ -38,6 +39,17 @@ public class TransaksiService {
 
     // ✅ CONFIG: Booking expiry time in minutes
     private static final long BOOKING_EXPIRY_MINUTES = 120; // 2 jam
+
+    // ============================================================
+    // 0. HELPER METHODS
+    // ============================================================
+
+    /**
+     * ✅ BARU: Get transaksi by ID (untuk detail modal & validation)
+     */
+    public Optional<Transaksi> getTransaksiById(Long id) {
+        return transaksiRepository.findById(id);
+    }
 
     // ============================================================
     // 1. BOOKING VALIDATION & CREATION
@@ -101,12 +113,12 @@ public class TransaksiService {
     /**
      * ✅ CORE LOGIC: Buat Transaksi dari Cart
      *
-     * Flow YANG BENAR:
+     * ✅ FLOW YANG BENAR:
      * 1. Validasi satu toko
      * 2. Hitung total harga
      * 3. Create Transaksi status PENDING
      * 4. Set waktuExpire = now + 2 jam
-     * 5. ⚡ KURANGI STOCK LANGSUNG (BERBEDA DARI SEBELUMNYA!)
+     * 5. ⚡ KURANGI STOCK LANGSUNG (PERBEDAAN DARI SEBELUMNYA!)
      * 6. Create DetailTransaksi
      * 7. Clear keranjang
      */
@@ -169,6 +181,11 @@ public class TransaksiService {
         for (KeranjangItem item : keranjang) {
             Peralatan alat = item.getPeralatan();
             int stokSebelum = alat.getStok();
+
+            // Validasi stok sebelum kurangi
+            if (alat.getStok() < item.getKuantitas()) {
+                throw new RuntimeException("Stok untuk '" + alat.getNamaAlat() + "' tidak mencukupi!");
+            }
 
             // KURANGI STOCK SEKARANG
             alat.setStok(alat.getStok() - item.getKuantitas());
@@ -237,56 +254,6 @@ public class TransaksiService {
     }
 
     /**
-     * ✅ Saat pengembalian, hitung denda jika terlambat
-     * DIPAKAI → SELESAI (tepat waktu)
-     * DIPAKAI → TERLAMBAT (lewat + denda)
-     */
-    @Transactional
-    public void kembalikanBarang(Long transaksiId) {
-        Transaksi transaksi = transaksiRepository.findById(transaksiId)
-                .orElseThrow(() -> new IllegalArgumentException("Transaksi tidak ditemukan"));
-
-        if (!"DIPAKAI".equals(transaksi.getStatusTransaksi())) {
-            throw new IllegalStateException("Transaksi harus dalam status DIPAKAI!");
-        }
-
-        LocalDate hariIni = LocalDate.now();
-        LocalDate batasKembali = transaksi.getTanggalKembali();
-
-        // Cek apakah terlambat
-        if (hariIni.isAfter(batasKembali)) {
-            // Hitung selisih hari keterlambatan
-            long hariTerlambat = ChronoUnit.DAYS.between(batasKembali, hariIni);
-
-            // Ambil detail item untuk menghitung denda
-            List<DetailTransaksi> details = detailTransaksiRepository.findByTransaksi(transaksi);
-            BigDecimal totalDendaAkumulasi = BigDecimal.ZERO;
-
-            for (DetailTransaksi detail : details) {
-                // Rumus: Denda per alat × Kuantitas × Jumlah Hari Terlambat
-                BigDecimal dendaPerItem = detail.getPeralatan().getDendaKerusakan()
-                        .multiply(BigDecimal.valueOf(detail.getKuantitas()))
-                        .multiply(BigDecimal.valueOf(hariTerlambat));
-
-                totalDendaAkumulasi = totalDendaAkumulasi.add(dendaPerItem);
-            }
-
-            // Tambahkan denda ke total harga
-            transaksi.setTotalHarga(transaksi.getTotalHarga().add(totalDendaAkumulasi));
-            transaksi.setStatusTransaksi("TERLAMBAT");
-
-            System.out.println("⚠️ Pengembalian TERLAMBAT!");
-            System.out.println("   Hari terlambat: " + hariTerlambat);
-            System.out.println("   Denda tambahan: Rp" + totalDendaAkumulasi);
-        } else {
-            transaksi.setStatusTransaksi("SELESAI");
-            System.out.println("✅ Pengembalian tepat waktu! Status: DIPAKAI → SELESAI");
-        }
-
-        transaksiRepository.save(transaksi);
-    }
-
-    /**
      * ✅ BARU: Store REJECT/CANCEL booking
      *
      * Action:
@@ -323,6 +290,69 @@ public class TransaksiService {
 
         System.out.println("✅ Booking dibatalkan/ditolak");
         System.out.println("   Alasan: " + alasan);
+    }
+
+    /**
+     * ✅ Saat pengembalian, hitung denda jika terlambat
+     * DIPAKAI → SELESAI (tepat waktu)
+     * DIPAKAI → TERLAMBAT (lewat + hitung denda)
+     */
+    @Transactional
+    public void kembalikanBarang(Long transaksiId) {
+        Transaksi transaksi = transaksiRepository.findById(transaksiId)
+                .orElseThrow(() -> new IllegalArgumentException("Transaksi tidak ditemukan"));
+
+        if (!"DIPAKAI".equals(transaksi.getStatusTransaksi())) {
+            throw new IllegalStateException("Transaksi harus dalam status DIPAKAI!");
+        }
+
+        LocalDate hariIni = LocalDate.now();
+        LocalDate batasKembali = transaksi.getTanggalKembali();
+
+        // ⚠️ KEMBALIKAN STOK
+        System.out.println("🔄 Kembalikan stok barang...");
+        List<DetailTransaksi> details = detailTransaksiRepository.findByTransaksi(transaksi);
+        for (DetailTransaksi detail : details) {
+            Peralatan alat = detail.getPeralatan();
+            int stokSebelum = alat.getStok();
+
+            alat.setStok(alat.getStok() + detail.getKuantitas());
+            peralatanRepository.save(alat);
+
+            System.out.println("   ✅ " + alat.getNamaAlat() +
+                    ": " + stokSebelum + " → " + alat.getStok());
+        }
+
+        // Cek apakah terlambat
+        if (hariIni.isAfter(batasKembali)) {
+            // Hitung selisih hari keterlambatan
+            long hariTerlambat = ChronoUnit.DAYS.between(batasKembali, hariIni);
+
+            // Hitung denda
+            BigDecimal totalDendaAkumulasi = BigDecimal.ZERO;
+
+            for (DetailTransaksi detail : details) {
+                // Rumus: Denda per alat × Kuantitas × Jumlah Hari Terlambat
+                BigDecimal dendaPerItem = detail.getPeralatan().getDendaKerusakan()
+                        .multiply(BigDecimal.valueOf(detail.getKuantitas()))
+                        .multiply(BigDecimal.valueOf(hariTerlambat));
+
+                totalDendaAkumulasi = totalDendaAkumulasi.add(dendaPerItem);
+            }
+
+            // Tambahkan denda ke total harga
+            transaksi.setTotalHarga(transaksi.getTotalHarga().add(totalDendaAkumulasi));
+            transaksi.setStatusTransaksi("TERLAMBAT");
+
+            System.out.println("⚠️ Pengembalian TERLAMBAT!");
+            System.out.println("   Hari terlambat: " + hariTerlambat);
+            System.out.println("   Denda tambahan: Rp" + totalDendaAkumulasi);
+        } else {
+            transaksi.setStatusTransaksi("SELESAI");
+            System.out.println("✅ Pengembalian tepat waktu! Status: DIPAKAI → SELESAI");
+        }
+
+        transaksiRepository.save(transaksi);
     }
 
     // ============================================================

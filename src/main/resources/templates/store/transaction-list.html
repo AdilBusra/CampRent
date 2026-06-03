@@ -134,19 +134,18 @@
 <div th:replace="~{fragments/offline-rental-modal :: offlineRentalModal}"></div>
 <div th:replace="~{fragments/booking-detail-modal :: bookingDetailModal}"></div>
 <div th:replace="~{fragments/offline-detail-modal :: offlineDetailModal}"></div>
+<div th:replace="~{fragments/store-booking-detail-modal :: storeBookingDetailModal}"></div>
 
 <script>
     // Handler untuk membaca data attributes saat baris tabel di-klik
     function handleRowClick(rowElement) {
-        // Ambil data-id dan data-source dari elemen HTML
-        const id = rowElement.getAttribute('data-id');
-        const source = rowElement.getAttribute('data-source');
+    const id = rowElement.getAttribute('data-id');
+    const source = rowElement.getAttribute('data-source');
 
-        // Konversi ID ke tipe Number sesuai kebutuhan fungsi pencarian baris data
-        if (id && source) {
-            openDetailModal(Number(id), source);
-        }
+    if (id && source) {
+        openStoreBookingModal(Number(id));  // ← Function ini harus exist
     }
+}
 
     // A. Kunci Keyboard dari karakter minus atau aneh
     function blockMinusAndZero(e) {
@@ -313,6 +312,7 @@
         }
     }
 </script>
+<!-- Tambahkan modal fragment SEBELUM closing body -->
 
 </body>
 </html>

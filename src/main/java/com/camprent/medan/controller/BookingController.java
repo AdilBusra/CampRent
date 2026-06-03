@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 
 @Controller
@@ -44,7 +45,7 @@ public class BookingController {
             Map<String, Object> result = transaksiService.validateBookingBeforeCheckout(username);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
-            Map<String, Object> errorResult = new java.util.HashMap<>();
+            Map<String, Object> errorResult = new HashMap<>();
             errorResult.put("valid", false);
             errorResult.put("message", "Error: " + e.getMessage());
             return ResponseEntity.ok(errorResult);
@@ -63,13 +64,15 @@ public class BookingController {
      * - tanggalSewa: 2026-06-01
      * - tanggalKembali: 2026-06-05
      *
-     * Flow:
-     * 1. Parse tanggal
-     * 2. Validasi satu toko
+     * ✅ FLOW YANG BENAR:
+     * 1. Validasi satu toko
+     * 2. Hitung total harga
      * 3. Create Transaksi status PENDING
-     * 4. ⚡ KURANGI STOK LANGSUNG
-     * 5. Clear cart
-     * 6. Redirect ke booking-success page
+     * 4. Set waktuExpire = now + 2 jam
+     * 5. ⚡ KURANGI STOK LANGSUNG
+     * 6. Create DetailTransaksi
+     * 7. Clear keranjang
+     * 8. Redirect ke booking-success page
      */
     @PostMapping("/checkout")
     public String checkoutBooking(
@@ -147,13 +150,33 @@ public class BookingController {
                 return "redirect:/customer/dashboard?error=NoBookingId";
             }
 
+            // Get booking details dari database
+            Transaksi transaksi = transaksiService.getTransaksiById(bookingId)
+                    .orElseThrow(() -> new RuntimeException("Booking tidak ditemukan"));
+
+            // Validasi: booking milik customer yang login?
+            if (auth != null && transaksi.getCustomer() != null) {
+                if (!transaksi.getCustomer().getUser().getUsername().equals(auth.getName())) {
+                    return "redirect:/customer/dashboard?error=Unauthorized";
+                }
+            }
+
             model.addAttribute("bookingId", bookingId);
+            model.addAttribute("totalHarga", transaksi.getTotalHarga());
+            model.addAttribute("storeNama", transaksi.getStore().getNamaToko());
+            model.addAttribute("tanggalSewa", transaksi.getTanggalSewa());
+            model.addAttribute("tanggalKembali", transaksi.getTanggalKembali());
+
             return "customer/booking-success";
 
         } catch (Exception e) {
             return "redirect:/customer/dashboard?error=BookingNotFound";
         }
     }
+
+    // ============================================================
+    // 3. BOOKING DETAILS & STATUS MONITORING
+    // ============================================================
 
     /**
      * ✅ AJAX: Get booking details & remaining time
@@ -168,16 +191,30 @@ public class BookingController {
             Authentication auth) {
 
         try {
-            Map<String, Object> details = new java.util.HashMap<>();
-            details.put("bookingId", id);
-            details.put("message", "Booking details retrieved");
+            Transaksi transaksi = transaksiService.getTransaksiById(id)
+                    .orElseThrow(() -> new RuntimeException("Booking tidak ditemukan"));
+
+            // Security check
+            if (auth != null && transaksi.getCustomer() != null) {
+                if (!transaksi.getCustomer().getUser().getUsername().equals(auth.getName())) {
+                    return ResponseEntity.status(403).body(Map.of("error", "Unauthorized"));
+                }
+            }
+
+            Map<String, Object> details = new HashMap<>();
+            details.put("bookingId", transaksi.getId());
+            details.put("status", transaksi.getStatusTransaksi());
+            details.put("storeName", transaksi.getStore().getNamaToko());
+            details.put("totalHarga", transaksi.getTotalHarga());
+            details.put("tanggalSewa", transaksi.getTanggalSewa());
+            details.put("tanggalKembali", transaksi.getTanggalKembali());
+            details.put("remainingMinutes", transaksi.getRemainingMinutes());
+            details.put("isExpired", transaksi.isExpired());
 
             return ResponseEntity.ok(details);
 
         } catch (Exception e) {
-            Map<String, Object> error = new java.util.HashMap<>();
-            error.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(error);
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 
@@ -194,12 +231,27 @@ public class BookingController {
      */
     @GetMapping("/{id}/remaining-time")
     @ResponseBody
-    public ResponseEntity<?> getRemainingTime(@PathVariable Long id) {
+    public ResponseEntity<?> getRemainingTime(
+            @PathVariable Long id,
+            Authentication auth) {
+
         try {
-            Map<String, Object> response = new java.util.HashMap<>();
+            Transaksi transaksi = transaksiService.getTransaksiById(id)
+                    .orElseThrow(() -> new RuntimeException("Booking tidak ditemukan"));
+
+            // Security check
+            if (auth != null && transaksi.getCustomer() != null) {
+                if (!transaksi.getCustomer().getUser().getUsername().equals(auth.getName())) {
+                    return ResponseEntity.status(403).body(Map.of("error", "Unauthorized"));
+                }
+            }
+
+            Map<String, Object> response = new HashMap<>();
             response.put("bookingId", id);
-            response.put("remainingMinutes", 120);
-            response.put("isExpired", false);
+            response.put("status", transaksi.getStatusTransaksi());
+            response.put("remainingMinutes", transaksi.getRemainingMinutes());
+            response.put("isExpired", transaksi.isExpired());
+            response.put("message", transaksi.isExpired() ? "Booking sudah expired" : "Booking masih valid");
 
             return ResponseEntity.ok(response);
 
@@ -209,96 +261,11 @@ public class BookingController {
     }
 
     // ============================================================
-    // 3. STORE SIDE: ACCEPT/REJECT BOOKING
+    // 4. HELPER METHOD
     // ============================================================
 
     /**
-     * ✅ POST: Store TERIMA/PICK booking
-     *
-     * Endpoint: POST /customer/booking/{id}/accept
-     *
-     * ✅ REFACTORED: Diubah dari serahkanBarang() ke acceptPickup()
-     *
-     * Action:
-     * - Status: PENDING → DIPAKAI
-     * - ⚠️ Stock JANGAN diubah (sudah berkurang saat booking)
-     * - Ini hanya confirm bahwa customer sudah ambil barang
+     * Helper untuk get transaksi by ID (baru di controller, bisa juga di service)
      */
-    @PostMapping("/{id}/accept")
-    public String acceptBooking(
-            @PathVariable Long id,
-            RedirectAttributes redirectAttributes) {
-
-        try {
-            // ✅ Ganti dari serahkanBarang() ke acceptPickup()
-            transaksiService.acceptPickup(id);
-
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "✅ Barang diterima! Status: PENDING → DIPAKAI");
-            return "redirect:/store/transaksi";
-
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "❌ Error: " + e.getMessage());
-            return "redirect:/store/transaksi";
-        }
-    }
-
-    /**
-     * ✅ POST: Store TOLAK/CANCEL booking
-     *
-     * Endpoint: POST /customer/booking/{id}/reject
-     *
-     * Action:
-     * - Status: PENDING → CANCELLED
-     * - ⚠️ KEMBALIKAN STOK yang sudah berkurang
-     */
-    @PostMapping("/{id}/reject")
-    public String rejectBooking(
-            @PathVariable Long id,
-            @RequestParam(value = "alasan", required = false) String alasan,
-            RedirectAttributes redirectAttributes) {
-
-        try {
-            String alasanDefault = alasan != null ? alasan : "Ditolak oleh store";
-            transaksiService.rejectBooking(id, alasanDefault);
-
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "✅ Booking ditolak. Stok barang dikembalikan.");
-            return "redirect:/store/transaksi";
-
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "❌ Error: " + e.getMessage());
-            return "redirect:/store/transaksi";
-        }
-    }
-
-    /**
-     * ✅ POST: Customer KEMBALIKAN barang
-     *
-     * Endpoint: POST /customer/booking/{id}/return
-     *
-     * Action:
-     * - Status: DIPAKAI → SELESAI (jika tepat waktu)
-     * - Status: DIPAKAI → TERLAMBAT (jika terlambat + hitung denda)
-     */
-    @PostMapping("/{id}/return")
-    public String returnBooking(
-            @PathVariable Long id,
-            RedirectAttributes redirectAttributes) {
-
-        try {
-            transaksiService.kembalikanBarang(id);
-
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "✅ Barang berhasil dikembalikan!");
-            return "redirect:/customer/my-booking";
-
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "❌ Error: " + e.getMessage());
-            return "redirect:/customer/my-booking";
-        }
-    }
+    // Sebenarnya ini bisa diakses langsung dari service, tapi untuk clarity ditambah di sini
 }
